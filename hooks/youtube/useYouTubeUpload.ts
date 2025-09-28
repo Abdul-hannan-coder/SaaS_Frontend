@@ -36,7 +36,7 @@ export default function useYouTubeUpload() {
       console.log(`[YouTube Upload] Uploading video ${videoId} to YouTube...`)
       
       const response = await axios.post(
-        `https://saas-backend.duckdns.org/youtube-upload/${videoId}/upload`,
+        `/api/proxy/youtube-upload/${videoId}/upload`,
         {}, // Empty body as per the curl example
         { headers }
       )

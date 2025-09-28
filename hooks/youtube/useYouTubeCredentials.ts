@@ -19,7 +19,7 @@ export interface YouTubeCredentialsState {
   lastChecked: number | null
 }
 
-const API_BASE_URL = 'https://saas-backend.duckdns.org'
+const API_BASE_URL = '/api/proxy'
 
 // Create axios instance for YouTube credentials API calls
 const credentialsApi = axios.create({

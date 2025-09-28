@@ -9,16 +9,11 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  async headers() {
+  async rewrites() {
     return [
       {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: "upgrade-insecure-requests",
-          },
-        ],
+        source: '/api/proxy/:path*',
+        destination: 'http://saas-backend.duckdns.org/:path*',
       },
     ]
   },

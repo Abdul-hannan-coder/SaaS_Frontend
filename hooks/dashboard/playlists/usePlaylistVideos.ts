@@ -50,7 +50,7 @@ const usePlaylistVideos = (playlistId: string) => {
       const token = localStorage.getItem('auth_token');
 
       const response = await fetch(
-        `https://saas-backend.duckdns.org/dashboard/playlists/${playlistId}/videos?refresh=${refresh}`,
+        `/api/proxy/dashboard/playlists/${playlistId}/videos?refresh=${refresh}`,
         {
           headers: {
             Accept: "application/json",
