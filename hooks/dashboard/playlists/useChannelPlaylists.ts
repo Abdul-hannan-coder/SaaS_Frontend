@@ -20,7 +20,7 @@ export function useChannelPlaylists() {
       // Get token from localStorage (you might want to adjust this based on your auth implementation)
       const token = localStorage.getItem('auth_token') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1emFpciIsImV4cCI6MTc1Njk1Mjg0M30.Ihzz_NStHsvcxRQHL7DniM5ZhvBT4oUjGlUTDYeGpww'
       
-      const response = await fetch('http://saas-backend.duckdns.org/playlists/channel-playlists', {
+      const response = await fetch('https://saas-backend.duckdns.org/playlists/channel-playlists', {
         method: 'GET',
         headers: {
           'accept': 'application/json',

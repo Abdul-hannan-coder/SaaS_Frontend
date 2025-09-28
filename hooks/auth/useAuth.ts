@@ -46,7 +46,7 @@ export interface SignupResponse {
   id: string
 }
 
-const API_BASE_URL = 'http://saas-backend.duckdns.org'
+const API_BASE_URL = 'https://saas-backend.duckdns.org'
 
 // Create axios instance with base configuration
 const api = axios.create({

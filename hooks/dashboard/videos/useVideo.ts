@@ -29,8 +29,8 @@ const useVideo = (videoId: string) => {
         throw new Error('No authentication token found');
       }
 
-      console.log('📞 Making API call to:', `http://saas-backend.duckdns.org/dashboard/videos/${videoId}?refresh=${refresh}`);
-      const response = await fetch(`http://saas-backend.duckdns.org/dashboard/videos/${videoId}?refresh=${refresh}`, {
+      console.log('📞 Making API call to:', `https://saas-backend.duckdns.org/dashboard/videos/${videoId}?refresh=${refresh}`);
+      const response = await fetch(`https://saas-backend.duckdns.org/dashboard/videos/${videoId}?refresh=${refresh}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'accept': 'application/json',

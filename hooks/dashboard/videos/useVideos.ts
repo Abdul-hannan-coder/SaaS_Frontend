@@ -19,7 +19,7 @@ const useVideos = () => {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`http://saas-backend.duckdns.org/dashboard/videos?refresh=${refresh}`, {
+      const response = await fetch(`https://saas-backend.duckdns.org/dashboard/videos?refresh=${refresh}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'accept': 'application/json',
