@@ -91,6 +91,7 @@ export default function UploadPage() {
     uploadedVideoData: state.uploadedVideoData,
     privacyError,
     uploadError,
+    getVideoPreview,
   })
 
   const handleUpdateVideo = async (updates: any) => {

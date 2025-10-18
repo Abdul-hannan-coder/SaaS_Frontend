@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react'
 import axios from 'axios'
+import { API_BASE_URL } from '@/lib/config/appConfig'
+import { mapAxiosError } from '@/lib/utils/errorUtils'
 import useAuth from '../auth/useAuth'
 import { useToast } from '@/components/ui/use-toast'
 
-const API_BASE_URL = 'https://backend.postsiva.com'
+// Using centralized API_BASE_URL from appConfig
 
 export interface VideoUploadResponse {
   id: string  // UUID string, not number
@@ -195,40 +197,10 @@ export default function useVideos() {
     } catch (error: any) {
       // Clear the progress interval on error
       clearInterval(progressInterval)
-      
-      let errorMessage = 'Failed to upload video'
-      
-      if (axios.isAxiosError(error)) {
-        console.error('[Video][Upload] Error', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          url: error.config?.url,
-          data: error.response?.data,
-          message: error.message,
-        })
 
-        if (error.response?.status === 401) {
-          errorMessage = 'Authentication failed. Please login again.'
-        } else if (error.response?.status === 400) {
-          errorMessage = error.response.data?.detail || 'Invalid file or request'
-        } else if (error.response?.status === 413) {
-          errorMessage = 'File too large. Please select a smaller video file.'
-        } else if (error.response?.status === 415) {
-          errorMessage = 'Unsupported file type. Please select a valid video file.'
-        } else if (error.response?.status === 422) {
-          errorMessage = 'Invalid file format. Please check your video file.'
-        } else if (error.response?.status === 500) {
-          errorMessage = 'Server error. Please try again later.'
-        } else if (error.code === 'ECONNABORTED') {
-          errorMessage = 'Upload timeout. Please try again with a smaller file.'
-        } else {
-          errorMessage = `Upload failed: ${error.response?.status} ${error.response?.statusText}`
-        }
-      } else {
-        console.error('[Video][Upload] Error (non-axios)', error)
-        errorMessage = error.message || 'Network error occurred'
-      }
-      
+      const errorMessage = mapAxiosError(error, 'Failed to upload video')
+      if (!axios.isAxiosError(error)) console.error('[Video][Upload] Error (non-axios)', error)
+
       setError(errorMessage)
       setUploadProgress({
         progress: 0,

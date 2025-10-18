@@ -1,26 +1,22 @@
 "use client";
-import { useState, useEffect } from "react";
-
-interface PlaylistDetailsResponse {
-  success: boolean;
-  message: string;
-  data: any; // conforms to backend shape: { playlist_id, playlist_name, analytics: { ... } }
-}
+import { useEffect, useReducer } from "react";
+import { API_BASE_URL } from '@/lib/config/appConfig'
+import { 
+  initialPlaylistAnalyticsState,
+  playlistAnalyticsReducer,
+  PlaylistDetailsResponse 
+} from './Reducers/playlistAnalyticsReducer'
 
 const usePlaylistAnalytics = (playlistId: string) => {
-  const [playlistData, setPlaylistData] =
-    useState<PlaylistDetailsResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(playlistAnalyticsReducer, initialPlaylistAnalyticsState)
 
   const fetchPlaylistData = async (refresh: boolean = false) => {
-    setIsLoading(true);
-    setError(null);
+    dispatch({ type: 'INIT' })
     try {
       const token = localStorage.getItem('auth_token') 
 
       const response = await fetch(
-        `https://backend.postsiva.com/playlists/${playlistId}?refresh=${refresh}`,
+        `${API_BASE_URL}/playlists/${playlistId}?refresh=${refresh}`,
         {
           headers: {
             Accept: "application/json",
@@ -34,11 +30,11 @@ const usePlaylistAnalytics = (playlistId: string) => {
       }
 
       const data: PlaylistDetailsResponse = await response.json();
-      setPlaylistData(data);
+      dispatch({ type: 'SUCCESS', payload: data })
     } catch (err: any) {
-      setError(err.message);
+      dispatch({ type: 'ERROR', payload: err.message })
     } finally {
-      setIsLoading(false);
+      // reducer manages loading state
     }
   };
 
@@ -49,9 +45,9 @@ const usePlaylistAnalytics = (playlistId: string) => {
   }, [playlistId]);
 
   return { 
-    playlistData, 
-    isLoading, 
-    error,
+    playlistData: state.playlistData, 
+    isLoading: state.isLoading, 
+    error: state.error,
     refetch: () => fetchPlaylistData(true) // Refresh with refresh=true
   };
 };

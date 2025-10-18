@@ -1,0 +1,79 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "npm run -s build",
+			"args": [],
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "npm run -s build",
+			"args": [],
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "npm run -s build",
+			"args": [],
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "npm run -s build",
+			"args": [],
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "npm run -s build",
+			"args": [],
+			"problemMatcher": [
+				"$tsc"
+			],
+			"group": "build"
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "npm run -s build",
+			"group": "build"
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "npm run -s build",
+			"group": "build"
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "npm run -s build",
+			"group": "build"
+		},
+		{
+			"label": "TypeScript check",
+			"type": "shell",
+			"command": "npm run -s build",
+			"group": "build"
+		}
+	]
+}

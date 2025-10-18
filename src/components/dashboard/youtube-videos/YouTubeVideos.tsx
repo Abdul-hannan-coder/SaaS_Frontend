@@ -40,7 +40,7 @@ export default function YouTubeVideos() {
       filteredVideos = filteredVideos.filter(video =>
         video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         video.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        video.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  video.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
       )
     }
 
@@ -102,13 +102,13 @@ export default function YouTubeVideos() {
       }
     }
 
-    const high = allVideos.filter(video => video.performance_score >= 80).length
-    const medium = allVideos.filter(video => video.performance_score >= 40 && video.performance_score < 80).length
-    const low = allVideos.filter(video => video.performance_score < 40).length
+  const high = allVideos.filter((video: import('@/types/dashboard/videos').Video) => video.performance_score >= 80).length
+  const medium = allVideos.filter((video: import('@/types/dashboard/videos').Video) => video.performance_score >= 40 && video.performance_score < 80).length
+  const low = allVideos.filter((video: import('@/types/dashboard/videos').Video) => video.performance_score < 40).length
 
-    const highEngagement = allVideos.filter(video => video.engagement_rate >= 10).length
-    const mediumEngagement = allVideos.filter(video => video.engagement_rate >= 2 && video.engagement_rate < 10).length
-    const lowEngagement = allVideos.filter(video => video.engagement_rate < 2).length
+  const highEngagement = allVideos.filter((video: import('@/types/dashboard/videos').Video) => video.engagement_rate >= 10).length
+  const mediumEngagement = allVideos.filter((video: import('@/types/dashboard/videos').Video) => video.engagement_rate >= 2 && video.engagement_rate < 10).length
+  const lowEngagement = allVideos.filter((video: import('@/types/dashboard/videos').Video) => video.engagement_rate < 2).length
 
     return {
       high,

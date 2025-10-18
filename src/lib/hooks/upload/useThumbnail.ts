@@ -1,72 +1,35 @@
-import { useState, useCallback } from 'react'
-import axios from 'axios'
+import { useCallback, useReducer } from 'react'
+import { isAxiosError } from 'axios'
 import useAuth from '../auth/useAuth'
 import { useToast } from '@/components/ui/use-toast'
-
-const API_BASE_URL = 'https://backend.postsiva.com'
-
-export interface ThumbnailGenerateResponse {
-  success: boolean
-  message: string
-  video_id: string
-  image_url: string
-  width: number
-  height: number
-}
-
-export interface ThumbnailBatchResponse {
-  thumbnails: string[]
-  video_id: string
-  success: boolean
-  message: string
-}
-
-export interface ThumbnailSaveRequest {
-  thumbnail_url: string
-}
-
-export interface ThumbnailSaveResponse {
-  success: boolean
-  message: string
-  video_id: string
-  thumbnail_url: string
-  saved_at: string
-}
-
-export interface ThumbnailUploadResponse {
-  success: boolean
-  message: string
-  video_id: string
-  thumbnail_path: string
-  original_filename: string
-  file_size: number
-  content_type: string
-  saved_at: string
-}
+import { mapAxiosError } from '@/lib/utils/errorUtils'
+import { API_BASE_URL } from '@/lib/config/appConfig'
+import { createUploadAxios } from './uploadApi'
+import {
+  ThumbnailBatchResponse,
+  ThumbnailGenerateResponse,
+  ThumbnailSaveRequest,
+  ThumbnailSaveResponse,
+  ThumbnailUploadResponse,
+} from './thumbnailTypes'
+import {
+  initialThumbnailState,
+  thumbnailReducer,
+} from './thumbnailReducer'
 
 export default function useThumbnail() {
   const { getAuthHeaders } = useAuth()
   const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [generatedThumbnails, setGeneratedThumbnails] = useState<string[]>([])
-  // Track loading state for each individual thumbnail (0-4)
-  const [thumbnailLoadingStates, setThumbnailLoadingStates] = useState<boolean[]>([false, false, false, false, false])
+  const [state, dispatch] = useReducer(thumbnailReducer, initialThumbnailState)
 
-  const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-      accept: 'application/json',
-    },
-    timeout: 60000, // 60 second timeout for thumbnail generation
-  })
+  const axiosInstance = createUploadAxios('thumbnail')
 
   const generateSingleThumbnail = useCallback(async (videoId: string): Promise<ThumbnailGenerateResponse | undefined> => {
     const headers = getAuthHeaders()
     const url = `/thumbnail-generator/${videoId}/generate`
     
     console.log('[Thumbnail][Single Generate] Request', {
-      url: `${API_BASE_URL}${url}`,
+      url,
       videoId,
       hasAuthHeader: !!(headers as any)?.Authorization,
     })
@@ -100,16 +63,12 @@ export default function useThumbnail() {
     
     if (!videoId) {
       const errorMsg = 'Video ID is required'
-      setError(errorMsg)
+      dispatch({ type: 'ERROR', payload: errorMsg })
       toast({ title: 'Missing Video ID', description: errorMsg })
       return
     }
 
-    setIsLoading(true)
-    setError(null)
-    // Clear existing thumbnails and set all loading states to true
-    setGeneratedThumbnails([])
-    setThumbnailLoadingStates([true, true, true, true, true])
+  dispatch({ type: 'INIT_BATCH' })
 
     try {
       console.log('[Thumbnail][Batch Generate] Starting generation of 5 thumbnails for video:', videoId)
@@ -123,31 +82,18 @@ export default function useThumbnail() {
           const result = await generateSingleThumbnail(videoId)
           
           // Mark this specific thumbnail as loaded and update state immediately
-          setThumbnailLoadingStates(prev => {
-            const newStates = [...prev]
-            newStates[index] = false
-            return newStates
-          })
+          dispatch({ type: 'SET_ITEM_DONE', index })
           
           // Add thumbnail to the list as soon as it's ready
           if (result?.image_url) {
-            setGeneratedThumbnails(prev => {
-              const newThumbnails = [...prev]
-              newThumbnails[index] = result.image_url
-              console.log(`[Thumbnail][Batch Generate] Added thumbnail ${index + 1} to position ${index}`)
-              return newThumbnails
-            })
+            dispatch({ type: 'ADD_OR_SET_THUMBNAIL', index, url: result.image_url })
           }
           
           return { result: result || null, index }
         } catch (error) {
           console.error(`[Thumbnail][Batch Generate] Failed to generate thumbnail ${index + 1}:`, error)
           // Mark as failed (not loading anymore)
-          setThumbnailLoadingStates(prev => {
-            const newStates = [...prev]
-            newStates[index] = false
-            return newStates
-          })
+          dispatch({ type: 'SET_ITEM_DONE', index })
           return { result: null, index }
         }
       }
@@ -181,7 +127,7 @@ export default function useThumbnail() {
       }
 
       // Final update with all thumbnails
-      setGeneratedThumbnails(thumbnails)
+  dispatch({ type: 'SUCCESS_BATCH', thumbnails })
 
       const successMessage = thumbnails.length === 5 
         ? 'All 5 thumbnails generated successfully!' 
@@ -201,46 +147,13 @@ export default function useThumbnail() {
       
       return response
     } catch (error: any) {
-      let errorMessage = 'Failed to generate thumbnails'
-      
-      if (axios.isAxiosError(error)) {
-        console.error('[Thumbnail][Batch Generate] Error', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          url: error.config?.url,
-          data: error.response?.data,
-          message: error.message,
-        })
-
-        if (error.response?.status === 401) {
-          errorMessage = 'Authentication failed. Please login again.'
-        } else if (error.response?.status === 400) {
-          errorMessage = error.response.data?.detail || 'Invalid video ID or request'
-        } else if (error.response?.status === 404) {
-          errorMessage = 'Video not found. Please upload a video first.'
-        } else if (error.response?.status === 422) {
-          errorMessage = 'Invalid request data. Please check the video ID.'
-        } else if (error.response?.status === 500) {
-          errorMessage = 'Server error. Please try again later.'
-        } else {
-          errorMessage = `Request failed: ${error.response?.status} ${error.response?.statusText}`
-        }
-      } else {
-        console.error('[Thumbnail][Batch Generate] Error (non-axios)', error)
-        errorMessage = error.message || 'Network error occurred'
-      }
-      
-      setError(errorMessage)
-      toast({ 
-        title: 'Failed to generate thumbnails', 
-        description: errorMessage 
-      })
-      
+      const errorMessage = mapAxiosError(
+        isAxiosError(error) ? error : (error as any),
+        'Failed to generate thumbnails'
+      )
+      dispatch({ type: 'ERROR', payload: errorMessage })
+      toast({ title: 'Failed to generate thumbnails', description: errorMessage })
       throw new Error(errorMessage)
-    } finally {
-      setIsLoading(false)
-      // Ensure all loading states are false
-      setThumbnailLoadingStates([false, false, false, false, false])
     }
   }, [getAuthHeaders, toast, generateSingleThumbnail])
 
@@ -252,7 +165,7 @@ export default function useThumbnail() {
   const saveThumbnail = useCallback(async (videoId: string, thumbnailUrl: string): Promise<ThumbnailSaveResponse | undefined> => {
     if (!videoId || !thumbnailUrl) {
       const errorMsg = 'Video ID and thumbnail URL are required'
-      setError(errorMsg)
+      dispatch({ type: 'ERROR', payload: errorMsg })
       toast({ title: 'Missing Data', description: errorMsg })
       return
     }
@@ -260,20 +173,19 @@ export default function useThumbnail() {
     // Validate thumbnail URL format
     if (!thumbnailUrl.startsWith('http')) {
       const errorMsg = 'Invalid thumbnail URL format'
-      setError(errorMsg)
+      dispatch({ type: 'ERROR', payload: errorMsg })
       toast({ title: 'Invalid URL', description: errorMsg })
       return
     }
 
-    setIsLoading(true)
-    setError(null)
+    dispatch({ type: 'INIT_SINGLE' })
 
     try {
       const headers = getAuthHeaders()
       const url = `/thumbnail-generator/${videoId}/save`
       
       console.log('[Thumbnail][Save] Request Details', {
-        url: `${API_BASE_URL}${url}`,
+        url,
         videoId,
         thumbnailUrl: thumbnailUrl,
         thumbnailUrlLength: thumbnailUrl.length,
@@ -289,7 +201,7 @@ export default function useThumbnail() {
       const requestHeaders = {
         ...headers,
         'Content-Type': 'application/json',
-        'accept': 'application/json'
+        accept: 'application/json',
       }
 
       console.log('[Thumbnail][Save] Making API call with data:', {
@@ -298,9 +210,7 @@ export default function useThumbnail() {
         headers: Object.keys(requestHeaders)
       })
 
-      const res = await axiosInstance.post(url, requestData, { 
-        headers: requestHeaders
-      })
+      const res = await axiosInstance.post(url, requestData, { headers: requestHeaders })
       
       console.log('[Thumbnail][Save] Response', {
         status: res.status,
@@ -323,52 +233,20 @@ export default function useThumbnail() {
       
       return res.data
     } catch (error: any) {
-      let errorMessage = 'Failed to save thumbnail'
-      
-      if (axios.isAxiosError(error)) {
-        console.error('[Thumbnail][Save] Error Details', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          url: error.config?.url,
-          requestData: error.config?.data,
-          responseData: error.response?.data,
-          message: error.message,
-        })
-
-        if (error.response?.status === 401) {
-          errorMessage = 'Authentication failed. Please login again.'
-        } else if (error.response?.status === 400) {
-          errorMessage = error.response.data?.detail || 'Invalid thumbnail URL or video ID'
-        } else if (error.response?.status === 404) {
-          errorMessage = 'Video not found. Please upload a video first.'
-        } else if (error.response?.status === 422) {
-          errorMessage = 'Invalid request data. Please check your input.'
-        } else if (error.response?.status === 500) {
-          errorMessage = 'Server error. Please try again later.'
-        } else {
-          errorMessage = `Request failed: ${error.response?.status} ${error.response?.statusText}`
-        }
-      } else {
-        console.error('[Thumbnail][Save] Error (non-axios)', error)
-        errorMessage = error.message || 'Network error occurred'
-      }
-      
-      setError(errorMessage)
-      toast({ 
-        title: 'Failed to save thumbnail', 
-        description: errorMessage 
-      })
-      
+      const errorMessage = mapAxiosError(
+        isAxiosError(error) ? error : (error as any),
+        'Failed to save thumbnail'
+      )
+      dispatch({ type: 'ERROR', payload: errorMessage })
+      toast({ title: 'Failed to save thumbnail', description: errorMessage })
       throw new Error(errorMessage)
-    } finally {
-      setIsLoading(false)
     }
   }, [getAuthHeaders, toast])
 
   const uploadCustomThumbnail = useCallback(async (videoId: string, file: File): Promise<ThumbnailUploadResponse | undefined> => {
     if (!videoId || !file) {
       const errorMsg = 'Video ID and file are required'
-      setError(errorMsg)
+      dispatch({ type: 'ERROR', payload: errorMsg })
       toast({ title: 'Missing Data', description: errorMsg })
       return
     }
@@ -376,20 +254,19 @@ export default function useThumbnail() {
     // Validate file type
     if (!file.type.startsWith('image/')) {
       const errorMsg = 'Please select a valid image file'
-      setError(errorMsg)
+      dispatch({ type: 'ERROR', payload: errorMsg })
       toast({ title: 'Invalid File', description: errorMsg })
       return
     }
 
-    setIsLoading(true)
-    setError(null)
+  dispatch({ type: 'INIT_SINGLE' })
 
     try {
       const headers = getAuthHeaders()
       const url = `/thumbnail-generator/${videoId}/upload`
       
       console.log('[Thumbnail][Upload] Request', {
-        url: `${API_BASE_URL}${url}`,
+        url,
         videoId,
         fileName: file.name,
         fileSize: file.size,
@@ -404,7 +281,7 @@ export default function useThumbnail() {
       // Prepare headers without Content-Type (let axios set it for multipart)
       const uploadHeaders = {
         ...headers,
-        'accept': 'application/json',
+        accept: 'application/json',
         // Remove Content-Type to let axios set the boundary for multipart
       }
       delete (uploadHeaders as any)['Content-Type']
@@ -427,9 +304,9 @@ export default function useThumbnail() {
 
       // Add the uploaded thumbnail to the generated thumbnails list
       if (res.data?.thumbnail_path) {
-        // Construct the full URL for the uploaded thumbnail
         const thumbnailUrl = `${API_BASE_URL}/${res.data.thumbnail_path}`
-        setGeneratedThumbnails(prev => [...prev, thumbnailUrl])
+        // append to existing list preserving positions of batch-generated items
+        dispatch({ type: 'SUCCESS_BATCH', thumbnails: [...(state.generatedThumbnails || []), thumbnailUrl] })
       }
 
       toast({ 
@@ -439,59 +316,25 @@ export default function useThumbnail() {
       
       return res.data
     } catch (error: any) {
-      let errorMessage = 'Failed to upload custom thumbnail'
-      
-      if (axios.isAxiosError(error)) {
-        console.error('[Thumbnail][Upload] Error', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          url: error.config?.url,
-          data: error.response?.data,
-          message: error.message,
-        })
-
-        if (error.response?.status === 401) {
-          errorMessage = 'Authentication failed. Please login again.'
-        } else if (error.response?.status === 400) {
-          errorMessage = error.response.data?.detail || 'Invalid file or video ID'
-        } else if (error.response?.status === 413) {
-          errorMessage = 'File too large. Please select a smaller image.'
-        } else if (error.response?.status === 415) {
-          errorMessage = 'Unsupported file type. Please select a valid image file.'
-        } else if (error.response?.status === 422) {
-          errorMessage = 'Invalid file format. Please check your image file.'
-        } else if (error.response?.status === 500) {
-          errorMessage = 'Server error. Please try again later.'
-        } else {
-          errorMessage = `Upload failed: ${error.response?.status} ${error.response?.statusText}`
-        }
-      } else {
-        console.error('[Thumbnail][Upload] Error (non-axios)', error)
-        errorMessage = error.message || 'Network error occurred'
-      }
-      
-      setError(errorMessage)
-      toast({ 
-        title: 'Failed to upload thumbnail', 
-        description: errorMessage 
-      })
-      
+      const errorMessage = mapAxiosError(
+        isAxiosError(error) ? error : (error as any),
+        'Failed to upload custom thumbnail'
+      )
+      dispatch({ type: 'ERROR', payload: errorMessage })
+      toast({ title: 'Failed to upload thumbnail', description: errorMessage })
       throw new Error(errorMessage)
-    } finally {
-      setIsLoading(false)
     }
   }, [getAuthHeaders, toast])
 
   const clearThumbnails = useCallback(() => {
-    setGeneratedThumbnails([])
-    setError(null)
+    dispatch({ type: 'CLEAR' })
   }, [])
 
   return {
-    isLoading,
-    error,
-    generatedThumbnails,
-    thumbnailLoadingStates,
+    isLoading: state.isLoading,
+    error: state.error,
+    generatedThumbnails: state.generatedThumbnails,
+    thumbnailLoadingStates: state.thumbnailLoadingStates,
     generateThumbnails,
     regenerateThumbnails,
     saveThumbnail,

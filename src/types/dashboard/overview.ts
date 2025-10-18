@@ -1,3 +1,16 @@
+// For legacy reducer compatibility
+export interface DashboardOverviewResponse {
+  success: boolean;
+  message: string;
+  data: any;
+  refreshed: boolean;
+}
+
+export interface OverviewState {
+  data: DashboardOverviewResponse | null;
+  isLoading: boolean;
+  error: string | null;
+}
 export interface MonthlyAnalyticsData {
   month: string
   views: number

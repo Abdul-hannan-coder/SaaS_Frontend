@@ -1,100 +1,29 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useReducer } from 'react'
 import axios from 'axios'
 import useAuth from '../auth/useAuth'
 import { useToast } from '@/components/ui/use-toast'
-
-const API_BASE_URL = 'https://backend.postsiva.com'
-
-export interface AllInOneTimestamp {
-  time: string
-  title: string
-}
-
-export interface AllInOneThumbnail {
-  thumbnail_id: number
-  image_url: string
-  success: boolean
-}
-
-export interface AllInOneProcessResponse {
-  success: boolean
-  message: string
-  video_id: string
-  total_tasks: number
-  completed_tasks: number
-  failed_tasks: number
-  results: {
-    titles: {
-      success: boolean
-      message: string
-      generated_titles: string[]
-      error: string | null
-    }
-    description: {
-      success: boolean
-      message: string
-      generated_description: string
-      error: string | null
-    }
-    timestamps: {
-      success: boolean
-      message: string
-      generated_timestamps: AllInOneTimestamp[]
-      error: string | null
-    }
-    thumbnails: {
-      success: boolean
-      message: string
-      generated_thumbnails: AllInOneThumbnail[]
-      error: string | null
-    }
-  }
-  processing_time_seconds: number
-  errors: string[]
-}
-
-export interface AllInOneSaveRequest {
-  selected_title: string
-  selected_thumbnail_url: string
-  description: string
-  timestamps: AllInOneTimestamp[]
-  privacy_status?: string
-  playlist_name?: string
-  schedule_datetime?: string
-}
-
-export interface AllInOneSaveResponse {
-  success: boolean
-  message: string
-  video_id: string
-  saved_at: string
-}
+import { createUploadAxios } from './uploadApi'
+import { API_BASE_URL } from '@/lib/config/appConfig'
+import { mapAxiosError } from '@/lib/utils/errorUtils'
+import type { AllInOneProcessResponse, AllInOneSaveRequest, AllInOneSaveResponse } from './allInOneTypes'
+import { allInOneReducer, initialAllInOneState } from './allInOneReducer'
 
 export default function useAllInOne() {
   const { getAuthHeaders } = useAuth()
   const { toast } = useToast()
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [processedData, setProcessedData] = useState<AllInOneProcessResponse | null>(null)
+  const [state, dispatch] = useReducer(allInOneReducer, initialAllInOneState)
 
-  const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-      accept: 'application/json',
-    },
-  })
+  const axiosInstance = createUploadAxios('[AllInOne]')
 
   const processAllInOne = useCallback(async (videoId: string): Promise<AllInOneProcessResponse | undefined> => {
     if (!videoId) {
       const errorMsg = 'Video ID is required'
-      setError(errorMsg)
+      dispatch({ type: 'SET_ERROR', payload: errorMsg })
       toast({ title: 'Missing Video ID', description: errorMsg, variant: 'destructive' })
       return
     }
 
-    setIsProcessing(true)
-    setError(null)
+    dispatch({ type: 'PROCESS_START' })
 
     try {
       const headers = getAuthHeaders()
@@ -118,7 +47,7 @@ export default function useAllInOne() {
         processingTime: res.data?.processing_time_seconds,
       })
 
-      setProcessedData(res.data)
+  dispatch({ type: 'PROCESS_SUCCESS', payload: res.data })
 
       toast({ 
         title: 'Processing Complete', 
@@ -127,36 +56,10 @@ export default function useAllInOne() {
       
       return res.data
     } catch (error: any) {
-      let errorMessage = 'Failed to process video with AI'
+      let errorMessage = mapAxiosError(error, 'Failed to process video with AI')
+      if (!axios.isAxiosError(error)) console.error('[AllInOne][Process] Error (non-axios)', error)
       
-      if (axios.isAxiosError(error)) {
-        console.error('[AllInOne][Process] Error', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          url: error.config?.url,
-          data: error.response?.data,
-          message: error.message,
-        })
-
-        if (error.response?.status === 401) {
-          errorMessage = 'Authentication failed. Please login again.'
-        } else if (error.response?.status === 400) {
-          errorMessage = error.response.data?.detail || 'Invalid video ID or request'
-        } else if (error.response?.status === 404) {
-          errorMessage = 'Video not found. Please upload a video first.'
-        } else if (error.response?.status === 422) {
-          errorMessage = 'Invalid request data. Please check the video ID.'
-        } else if (error.response?.status === 500) {
-          errorMessage = 'Server error. Please try again later.'
-        } else {
-          errorMessage = `Request failed: ${error.response?.status} ${error.response?.statusText}`
-        }
-      } else {
-        console.error('[AllInOne][Process] Error (non-axios)', error)
-        errorMessage = error.message || 'Network error occurred'
-      }
-      
-      setError(errorMessage)
+      dispatch({ type: 'PROCESS_ERROR', payload: errorMessage })
       toast({ 
         title: 'Failed to process video', 
         description: errorMessage,
@@ -165,27 +68,26 @@ export default function useAllInOne() {
       
       throw new Error(errorMessage)
     } finally {
-      setIsProcessing(false)
+      dispatch({ type: 'PROCESS_END' })
     }
   }, [getAuthHeaders, toast])
 
   const saveAllInOne = useCallback(async (videoId: string, data: AllInOneSaveRequest): Promise<AllInOneSaveResponse | undefined> => {
     if (!videoId) {
       const errorMsg = 'Video ID is required'
-      setError(errorMsg)
+      dispatch({ type: 'SET_ERROR', payload: errorMsg })
       toast({ title: 'Missing Video ID', description: errorMsg, variant: 'destructive' })
       return
     }
 
     if (!data.selected_title || !data.selected_thumbnail_url || !data.description) {
       const errorMsg = 'Please select a title, thumbnail, and ensure description is present'
-      setError(errorMsg)
+      dispatch({ type: 'SET_ERROR', payload: errorMsg })
       toast({ title: 'Missing Required Fields', description: errorMsg, variant: 'destructive' })
       return
     }
 
-    setIsSaving(true)
-    setError(null)
+    dispatch({ type: 'SAVE_START' })
 
     try {
       const headers = getAuthHeaders()
@@ -225,36 +127,10 @@ export default function useAllInOne() {
       
       return res.data
     } catch (error: any) {
-      let errorMessage = 'Failed to save content'
+      let errorMessage = mapAxiosError(error, 'Failed to save content')
+      if (!axios.isAxiosError(error)) console.error('[AllInOne][Save] Error (non-axios)', error)
       
-      if (axios.isAxiosError(error)) {
-        console.error('[AllInOne][Save] Error', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          url: error.config?.url,
-          data: error.response?.data,
-          message: error.message,
-        })
-
-        if (error.response?.status === 401) {
-          errorMessage = 'Authentication failed. Please login again.'
-        } else if (error.response?.status === 400) {
-          errorMessage = error.response.data?.detail || 'Invalid data provided'
-        } else if (error.response?.status === 404) {
-          errorMessage = 'Video not found.'
-        } else if (error.response?.status === 422) {
-          errorMessage = 'Invalid request data. Please check your selections.'
-        } else if (error.response?.status === 500) {
-          errorMessage = 'Server error. Please try again later.'
-        } else {
-          errorMessage = `Request failed: ${error.response?.status} ${error.response?.statusText}`
-        }
-      } else {
-        console.error('[AllInOne][Save] Error (non-axios)', error)
-        errorMessage = error.message || 'Network error occurred'
-      }
-      
-      setError(errorMessage)
+      dispatch({ type: 'SET_ERROR', payload: errorMessage })
       toast({ 
         title: 'Failed to save content', 
         description: errorMessage,
@@ -263,20 +139,19 @@ export default function useAllInOne() {
       
       throw new Error(errorMessage)
     } finally {
-      setIsSaving(false)
+      dispatch({ type: 'SAVE_END' })
     }
   }, [getAuthHeaders, toast])
 
   const clearData = useCallback(() => {
-    setProcessedData(null)
-    setError(null)
+    dispatch({ type: 'CLEAR' })
   }, [])
 
   return {
-    isProcessing,
-    isSaving,
-    error,
-    processedData,
+    isProcessing: state.isProcessing,
+    isSaving: state.isSaving,
+    error: state.error,
+    processedData: state.processedData,
     processAllInOne,
     saveAllInOne,
     clearData,

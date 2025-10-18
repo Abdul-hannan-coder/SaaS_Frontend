@@ -1,21 +1,24 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useEffect, useMemo, useReducer } from "react"
 import { Playlist, PlaylistsResponse, PlaylistStats } from "@/types/dashboard/playlists"
+import { API_BASE_URL } from '@/lib/config/appConfig'
+import { playlistsReducer, initialPlaylistsState } from './Reducers/playlistsReducer'
 
 export function usePlaylists() {
-  const [playlists, setPlaylists] = useState<Playlist[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [state, dispatch] = useReducer(playlistsReducer, initialPlaylistsState)
+  const playlists = state.playlists
+  const isLoading = state.isLoading
+  const error = state.error
 
   const fetchPlaylists = async (refresh: boolean = false) => {
     try {
-      setIsLoading(true)
+      dispatch({ type: 'INIT' })
       
       // Get token from localStorage (you might want to adjust this based on your auth implementation)
-      const token = localStorage.getItem('auth_token') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1emFpciIsImV4cCI6MTc1NjgzMDY4M30.aOBeTuTo2AaSQttMBCwvFxm1Zq6fK2FQ3F-fLw2WL_c'
+      const token = localStorage.getItem('auth_token')
       
-      const response = await fetch(`https://backend.postsiva.com/dashboard/playlists?refresh=${refresh}`, {
+      const response = await fetch(`${API_BASE_URL}/dashboard/playlists?refresh=${refresh}`, {
         method: 'GET',
         headers: {
           'accept': 'application/json',
@@ -30,15 +33,15 @@ export function usePlaylists() {
       const data: PlaylistsResponse = await response.json()
       
       if (data.success) {
-        setPlaylists(data.data)
+        dispatch({ type: 'SUCCESS', payload: data.data })
       } else {
         throw new Error(data.message || 'Failed to fetch playlists')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      dispatch({ type: 'ERROR', payload: err instanceof Error ? err.message : 'An error occurred' })
       console.error('Error fetching playlists:', err)
     } finally {
-      setIsLoading(false)
+      // handled by reducer transitions
     }
   }
 
@@ -127,7 +130,7 @@ export function usePlaylists() {
   }, [playlists])
 
   const refreshData = async () => {
-    setError(null)
+    dispatch({ type: 'INIT' })
     await fetchPlaylists(true) // Refresh with refresh=true
   }
 

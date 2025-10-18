@@ -1,6 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useReducer } from "react"
+import { API_BASE_URL } from '@/lib/config/appConfig'
+import {
+  channelPlaylistsReducer,
+  initialChannelPlaylistsState,
+} from './Reducers/channelPlaylistsReducer'
 
 export interface ChannelPlaylist {
   id: string
@@ -20,14 +25,11 @@ interface PlaylistsApiResponse {
 }
 
 export function useChannelPlaylists() {
-  const [playlists, setPlaylists] = useState<ChannelPlaylist[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [state, dispatch] = useReducer(channelPlaylistsReducer, initialChannelPlaylistsState)
 
   const fetchChannelPlaylists = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
+      dispatch({ type: 'INIT' })
       
       // Get token from localStorage
       const token = localStorage.getItem('auth_token')
@@ -35,7 +37,7 @@ export function useChannelPlaylists() {
         throw new Error('Authentication required')
       }
 
-      const response = await fetch('https://backend.postsiva.com/playlists/?refresh=false', {
+      const response = await fetch(`${API_BASE_URL}/playlists/?refresh=false`, {
         method: 'GET',
         headers: {
           'accept': 'application/json',
@@ -53,12 +55,12 @@ export function useChannelPlaylists() {
         name: p.playlist_name,
       })) || []
 
-      setPlaylists(items)
+      dispatch({ type: 'SUCCESS', payload: items })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      dispatch({ type: 'ERROR', payload: err instanceof Error ? err.message : 'An error occurred' })
       console.error('Error fetching channel playlists:', err)
     } finally {
-      setIsLoading(false)
+      // handled by reducer
     }
   }
 
@@ -67,9 +69,9 @@ export function useChannelPlaylists() {
   }, [])
 
   return {
-    playlists,
-    isLoading,
-    error,
+    playlists: state.playlists,
+    isLoading: state.isLoading,
+    error: state.error,
     fetchChannelPlaylists
   }
 }

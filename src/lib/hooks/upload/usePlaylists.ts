@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import axios from 'axios'
+import { API_BASE_URL } from '@/lib/config/appConfig'
+import { mapAxiosError } from '@/lib/utils/errorUtils'
 import useAuth from '../auth/useAuth'
 
 export interface Playlist {
@@ -37,7 +39,7 @@ export default function usePlaylists() {
       console.log('[Playlists] Fetching user playlists...')
       
       const response = await axios.get(
-        'https://backend.postsiva.com/playlists/channel-playlists',
+        `${API_BASE_URL}/playlists/channel-playlists`,
         { headers }
       )
 
@@ -53,23 +55,7 @@ export default function usePlaylists() {
       return responseData.data
     } catch (error: any) {
       console.error('[Playlists] Error:', error)
-      
-      let errorMessage = 'Failed to fetch playlists'
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          errorMessage = 'Authentication failed. Please login again.'
-        } else if (error.response?.status === 404) {
-          errorMessage = 'No playlists found'
-        } else if (error.response?.status === 403) {
-          errorMessage = 'Access denied to playlists'
-        } else if (error.response?.status === 500) {
-          errorMessage = 'Server error. Please try again later.'
-        } else {
-          errorMessage = `Request failed: ${error.response?.status} ${error.response?.statusText}`
-        }
-      } else if (error.message) {
-        errorMessage = error.message
-      }
+      const errorMessage = mapAxiosError(error, 'Failed to fetch playlists')
 
       setState(prev => ({
         ...prev,
@@ -77,7 +63,7 @@ export default function usePlaylists() {
         isLoading: false,
       }))
 
-      throw error
+      throw new Error(errorMessage)
     }
   }, [getAuthHeaders])
 

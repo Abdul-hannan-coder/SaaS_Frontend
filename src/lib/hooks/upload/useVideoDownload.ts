@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react'
 import axios from 'axios'
+import { API_BASE_URL } from '@/lib/config/appConfig'
+import { mapAxiosError } from '@/lib/utils/errorUtils'
 import useAuth from '../auth/useAuth'
 
 interface VideoDownloadResponse {
@@ -65,7 +67,7 @@ export default function useVideoDownload() {
       formData.append('video_url', videoUrl)
 
       const response = await axios.post(
-        'https://backend.postsiva.com/videos/download',
+        `${API_BASE_URL}/videos/download`,
         formData,
         { 
           headers: {
@@ -90,25 +92,7 @@ export default function useVideoDownload() {
       return videoData
     } catch (error: any) {
       console.error('[Video Download] Error:', error)
-      
-      let errorMessage = 'Failed to download video'
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          errorMessage = 'Authentication failed. Please login again.'
-        } else if (error.response?.status === 404) {
-          errorMessage = 'Video not found or unavailable'
-        } else if (error.response?.status === 403) {
-          errorMessage = 'Access denied to download this video'
-        } else if (error.response?.status === 400) {
-          errorMessage = 'Invalid YouTube URL or video cannot be downloaded'
-        } else if (error.response?.status === 500) {
-          errorMessage = 'Server error. Please try again later.'
-        } else {
-          errorMessage = `Request failed: ${error.response?.status} ${error.response?.statusText}`
-        }
-      } else if (error.message) {
-        errorMessage = error.message
-      }
+      const errorMessage = mapAxiosError(error, 'Failed to download video')
 
       setState(prev => ({
         ...prev,
@@ -117,7 +101,7 @@ export default function useVideoDownload() {
         progress: 0,
       }))
 
-      throw error
+      throw new Error(errorMessage)
     }
   }, [getAuthHeaders])
 

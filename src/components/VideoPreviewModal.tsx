@@ -20,8 +20,8 @@ import {
   X,
   Loader2
 } from 'lucide-react'
-import { VideoData } from '@/lib/hooks/useVideoPreview'
-import { Playlist } from '@/lib/hooks/usePlaylists'
+import { VideoData } from '@/lib/hooks/upload/useVideoPreview'
+import { Playlist } from '@/types/dashboard/playlists'
 
 interface VideoPreviewModalProps {
   isOpen: boolean
@@ -99,10 +99,10 @@ export default function VideoPreviewModal({
                 <Label className="text-sm font-medium">Target Playlist</Label>
                 <Badge 
                   variant="outline" 
-                  className={getPrivacyColor(selectedPlaylist.privacy)}
+                  className={getPrivacyColor(selectedPlaylist.privacy_status)}
                 >
-                  {getPrivacyIcon(selectedPlaylist.privacy)}
-                  <span className="ml-1 capitalize">{selectedPlaylist.privacy}</span>
+                  {getPrivacyIcon(selectedPlaylist.privacy_status)}
+                  <span className="ml-1 capitalize">{selectedPlaylist.privacy_status}</span>
                 </Badge>
               </div>
               <h3 className="font-semibold text-lg">{selectedPlaylist.title}</h3>

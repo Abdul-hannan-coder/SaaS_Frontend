@@ -1,3 +1,16 @@
+// For legacy reducer compatibility
+export interface VideosState {
+  data: DashboardVideosResponse | null;
+  allVideos: any[];
+  displayedVideos: any[];
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  error: string | null;
+  hasMore: boolean;
+  currentPage: number;
+}
+
+export const VIDEOS_PER_PAGE = 12;
 export interface DashboardVideosResponse {
   success: boolean;
   message: string;

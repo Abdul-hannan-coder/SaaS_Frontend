@@ -115,12 +115,12 @@ export default function YouTubeCredentialButtons() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/40 rounded-md">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Access Token</p>
-                <p className="break-all">{maskToken(token.access_token)}</p>
+                <p className="break-all">{token.has_access_token ? '***' : 'N/A'}</p>
               </div>
               
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Refresh Token</p>
-                <p className="break-all">{maskToken(token.refresh_token)}</p>
+                <p className="break-all">{token.has_refresh_token ? '***' : 'N/A'}</p>
               </div>
               
               <div>
@@ -130,7 +130,8 @@ export default function YouTubeCredentialButtons() {
               
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Expires In</p>
-                <p>{token.expires_in} seconds</p>
+                {/* expires_in not present, show expires_at */}
+                <p>{token.expires_at}</p>
               </div>
               
               <div>
@@ -140,7 +141,7 @@ export default function YouTubeCredentialButtons() {
               
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Created At</p>
-                <p>{formatDateTime(token.created_at)}</p>
+                {/* created_at not present in YouTubeToken */}
               </div>
               
               <div className="col-span-2">
@@ -154,7 +155,7 @@ export default function YouTubeCredentialButtons() {
       
       <CardFooter className="flex justify-end">
         <p className="text-xs text-muted-foreground">
-          Token ID: {token?.id || 'N/A'} | User ID: {token?.user_id || 'N/A'}
+          {/* Token ID and User ID not present in YouTubeToken */}
         </p>
       </CardFooter>
     </Card>

@@ -1,18 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, useReducer } from 'react';
 import { DashboardVideosResponse, VideoStats } from '@/types/dashboard/videos';
+import { VIDEOS_PER_PAGE } from '@/types/dashboard/videos';
+import { initialVideosState, videosReducer } from './Reducers/videosReducer';
 
 const useVideos = () => {
-  const [data, setData] = useState<DashboardVideosResponse | null>(null);
-  const [allVideos, setAllVideos] = useState<any[]>([]);
-  const [displayedVideos, setDisplayedVideos] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const VIDEOS_PER_PAGE = 12; // Videos per page for display
+  const [state, dispatch] = useReducer(videosReducer, initialVideosState);
 
   const mapVideoData = useCallback((v: any) => {
     const publishedAt = v.published_at || v.created_at || new Date().toISOString();
@@ -60,12 +54,11 @@ const useVideos = () => {
   }, []);
 
   const fetchData = async (refresh: boolean = false) => {
-    setIsLoading(true);
-    setError(null);
-    setCurrentPage(1);
+  dispatch({ type: 'FETCH_START' });
+  dispatch({ type: 'REFRESH_START' });
 
     try {
-      const token = localStorage.getItem('auth_token');
+  const token = localStorage.getItem('auth_token');
       
       if (!token) {
         throw new Error('No authentication token found');
@@ -93,16 +86,7 @@ const useVideos = () => {
       const videos = Array.isArray(raw?.data?.videos) ? raw.data.videos : [];
 
       // Map backend videos to dashboard video shape with safe defaults
-      const mappedVideos = videos.map(mapVideoData);
-
-      setAllVideos(mappedVideos);
-      
-      // Show first page of videos
-      const initialVideos = mappedVideos.slice(0, VIDEOS_PER_PAGE);
-      setDisplayedVideos(initialVideos);
-      
-      // Check if there are more videos to load
-      setHasMore(mappedVideos.length > VIDEOS_PER_PAGE);
+  const mappedVideos = videos.map(mapVideoData);
 
       const result: DashboardVideosResponse = {
         success: !!raw?.success,
@@ -111,45 +95,40 @@ const useVideos = () => {
         count: mappedVideos.length,
       };
 
-      setData(result);
+      dispatch({ type: 'FETCH_SUCCESS', payload: { mappedVideos, response: result } });
     } catch (err: any) {
-      setError(err.message);
+      dispatch({ type: 'FETCH_ERROR', payload: err.message });
     } finally {
-      setIsLoading(false);
+      // End loading handled in reducer on success/error
     }
   };
 
   const loadMoreVideos = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return;
+  if (state.isLoadingMore || !state.hasMore) return;
 
-    setIsLoadingMore(true);
+  dispatch({ type: 'LOAD_MORE_START' });
     
     try {
       // Simulate API delay for better UX
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const nextPage = currentPage + 1;
+      const nextPage = state.currentPage + 1;
       const startIndex = nextPage * VIDEOS_PER_PAGE - VIDEOS_PER_PAGE;
       const endIndex = startIndex + VIDEOS_PER_PAGE - 1;
       
-      const moreVideos = allVideos.slice(startIndex, endIndex + 1);
+      const moreVideos = state.allVideos.slice(startIndex, endIndex + 1);
       
       if (moreVideos.length > 0) {
-        setDisplayedVideos(prev => [...prev, ...moreVideos]);
-        setCurrentPage(nextPage);
-        
-        // Check if there are more videos to load
-        const remainingVideos = allVideos.length - (endIndex + 1);
-        setHasMore(remainingVideos > 0);
+        dispatch({ type: 'LOAD_MORE_SUCCESS', payload: { moreVideos } });
       } else {
-        setHasMore(false);
+        dispatch({ type: 'SET_HAS_MORE', payload: false });
       }
     } catch (err: any) {
-      setError(err.message);
+      dispatch({ type: 'FETCH_ERROR', payload: err.message });
     } finally {
-      setIsLoadingMore(false);
+      dispatch({ type: 'LOAD_MORE_END' });
     }
-  }, [isLoadingMore, hasMore, currentPage, allVideos]);
+  }, [state.isLoadingMore, state.hasMore, state.currentPage, state.allVideos]);
 
   useEffect(() => {
     fetchData(false); // Initial load with refresh=false
@@ -157,7 +136,7 @@ const useVideos = () => {
 
   // Calculate video stats
   const videoStats: VideoStats = useMemo(() => {
-    if (!allVideos.length) {
+    if (!state.allVideos.length) {
       return {
         totalVideos: 0,
         totalViews: 0,
@@ -168,18 +147,18 @@ const useVideos = () => {
       };
     }
 
-    const videos = allVideos;
+    const videos = state.allVideos;
     const totalVideos = videos.length;
-    const totalViews = videos.reduce((sum, video) => sum + video.view_count, 0);
-    const totalLikes = videos.reduce((sum, video) => sum + video.like_count, 0);
-    const totalComments = videos.reduce((sum, video) => sum + video.comment_count, 0);
+    const totalViews = videos.reduce((sum: number, video: any) => sum + video.view_count, 0);
+    const totalLikes = videos.reduce((sum: number, video: any) => sum + video.like_count, 0);
+    const totalComments = videos.reduce((sum: number, video: any) => sum + video.comment_count, 0);
     
     const avgEngagement = totalVideos > 0 
-      ? videos.reduce((sum, video) => sum + video.engagement_rate, 0) / totalVideos 
+      ? videos.reduce((sum: number, video: any) => sum + video.engagement_rate, 0) / totalVideos 
       : 0;
     
     const avgPerformanceScore = totalVideos > 0 
-      ? videos.reduce((sum, video) => sum + video.performance_score, 0) / totalVideos 
+      ? videos.reduce((sum: number, video: any) => sum + video.performance_score, 0) / totalVideos 
       : 0;
 
     return {
@@ -190,20 +169,20 @@ const useVideos = () => {
       avgEngagement: parseFloat(avgEngagement.toFixed(2)),
       avgPerformanceScore: parseFloat(avgPerformanceScore.toFixed(2)),
     };
-  }, [allVideos]);
+  }, [state.allVideos]);
 
   return { 
-    data, 
-    videos: displayedVideos, // Return only displayed videos for pagination
-    allVideos: allVideos, // Return all videos for stats calculation
+    data: state.data, 
+    videos: state.displayedVideos, // Return only displayed videos for pagination
+    allVideos: state.allVideos, // Return all videos for stats calculation
     videoStats, 
-    isLoading, 
-    isLoadingMore,
-    error,
-    hasMore,
+    isLoading: state.isLoading, 
+    isLoadingMore: state.isLoadingMore,
+    error: state.error,
+    hasMore: state.hasMore,
     loadMoreVideos,
     refetch: () => {
-      setCurrentPage(1);
+      dispatch({ type: 'REFRESH_START' });
       fetchData(true); // Refresh with refresh=true
     }
   };

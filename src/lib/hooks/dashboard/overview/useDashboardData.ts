@@ -137,90 +137,18 @@
 // filepath: /hooks/dashboard/overview/useDashboardOverview.ts
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useReducer } from "react";
+import { overviewReducer, initialOverviewState } from './Reducers/overviewReducer'
+import type { DashboardOverviewResponse } from '@/types/dashboard/overview'
 
-export interface DashboardOverviewResponse {
-  success: boolean;
-  message: string;
-  data: {
-    total_videos: number;
-    total_views: number;
-    subscriber_count: number;
-    engagement_rate: number;
-    monetization_progress: {
-      watch_time_hours: number;
-      monetization_eligible: boolean;
-      subscriber_progress_percentage: number;
-      watch_time_progress_percentage: number;
-      requirements: {
-        subscriber_requirement: number;
-        watch_time_requirement: number;
-      };
-    };
-    content_distributions: {
-      view_distribution: {
-        total_views: number;
-        avg_views_per_day: number;
-      };
-      duration_distribution: {
-        avg_duration_seconds: number;
-        total_watch_time_minutes: number;
-      };
-    };
-    monthly_analytics: {
-      monthly_data: {
-        [key: string]: {
-          views: number;
-          engagement: number;
-        };
-      };
-    };
-    top_performance_content: {
-      top_video_by_views: {
-        video_id: string;
-        title: string;
-        views: number;
-        likes: number;
-        comments: number;
-        published_at: string;
-        engagement_rate: number;
-      };
-      top_video_by_likes: {
-        video_id: string;
-        title: string;
-        views: number;
-        likes: number;
-        comments: number;
-        published_at: string;
-        engagement_rate: number;
-      };
-    };
-    performance_metrics: {
-      avg_views_per_video: number;
-      avg_likes_per_video: number;
-      avg_comments_per_video: number;
-      avg_duration_minutes: number;
-    };
-    growth_insights: {
-      channel_age_months: number;
-      upload_frequency: number;
-      total_watch_time_hours: number;
-      health_score: number;
-    };
-    health_score: number;
-  };
-  refreshed: boolean;
-}
+// Types moved to overviewTypes.ts
 
 const useDashboardOverview = () => {
-  const [data, setData] = useState<DashboardOverviewResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(overviewReducer, initialOverviewState)
 
   const fetchDashboardOverview = async (refresh: boolean = false) => {
     try {
-      setIsLoading(true);
-      setError(null);
+      dispatch({ type: 'FETCH_START' })
 
       const token = localStorage.getItem('auth_token')
       if (!token) {
@@ -242,14 +170,12 @@ const useDashboardOverview = () => {
 
       const result: DashboardOverviewResponse = await response.json();
       if (result.success) {
-        setData(result);
+        dispatch({ type: 'FETCH_SUCCESS', payload: result })
       } else {
         throw new Error(result.message || "Failed to fetch dashboard overview");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
+      dispatch({ type: 'FETCH_ERROR', payload: err instanceof Error ? err.message : "An error occurred" })
     }
   };
 
@@ -258,10 +184,10 @@ const useDashboardOverview = () => {
   }, []);
 
   return {
-    data: data?.data || null,
-    overviewData: data?.data || null,
-    isLoading,
-    error,
+    data: state.data?.data || null,
+    overviewData: state.data?.data || null,
+    isLoading: state.isLoading,
+    error: state.error,
     refetch: () => fetchDashboardOverview(true)
   };
 };

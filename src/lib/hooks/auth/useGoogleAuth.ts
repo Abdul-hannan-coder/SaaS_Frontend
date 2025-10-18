@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useReducer, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   generateSessionId, 
@@ -10,27 +10,12 @@ import {
   removeActiveUserId
 } from '@/lib/auth';
 
-interface GoogleAuthStatus {
-  google_oauth_configured: boolean;
-  redirect_uri: string;
-  login_url: string;
-}
-
-interface GoogleAuthResponse {
-  success: boolean;
-  message: string;
-  token?: string;
-  user?: {
-    id: string;
-    email: string;
-    name: string;
-  };
-}
+import { STORAGE_KEYS } from './authConstants';
+import { GoogleAuthStatus, GoogleAuthResponse } from './types/googleAuthTypes';
+import { googleAuthReducer, initialGoogleAuthState } from './Reducers/googleAuthReducer';
 
 const useGoogleAuth = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [authStatus, setAuthStatus] = useState<GoogleAuthStatus | null>(null);
+  const [state, dispatch] = useReducer(googleAuthReducer, initialGoogleAuthState);
   const router = useRouter();
 
   // Check Google OAuth configuration status
@@ -48,19 +33,19 @@ const useGoogleAuth = () => {
       }
 
       const status: GoogleAuthStatus = await response.json();
-      setAuthStatus(status);
+      dispatch({ type: 'SET_STATUS', payload: status });
       return status;
     } catch (err: any) {
       console.error('Error checking Google auth status:', err);
-      setError(err.message);
+      dispatch({ type: 'SET_ERROR', payload: err.message });
       return null;
     }
   }, []);
 
   // Initiate Google OAuth login
   const initiateGoogleLogin = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  dispatch({ type: 'SET_LOADING', payload: true });
+  dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
       // First check if Google OAuth is configured
@@ -74,8 +59,8 @@ const useGoogleAuth = () => {
       const loginUrl = `https://backend.postsiva.com${status.login_url}`;
       
       // Store the current URL to redirect back after login
-      const currentUrl = window.location.href;
-      localStorage.setItem('google_auth_redirect', currentUrl);
+  const currentUrl = window.location.href;
+  localStorage.setItem(STORAGE_KEYS.GOOGLE_AUTH_REDIRECT, currentUrl);
       
       console.log('Redirecting to Google OAuth:', loginUrl);
       
@@ -84,15 +69,15 @@ const useGoogleAuth = () => {
       
     } catch (err: any) {
       console.error('Error initiating Google login:', err);
-      setError(err.message);
-      setIsLoading(false);
+      dispatch({ type: 'SET_ERROR', payload: err.message });
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [checkGoogleAuthStatus]);
 
   // Handle Google OAuth callback
   const handleGoogleCallback = useCallback(async (code: string, state?: string) => {
-    setIsLoading(true);
-    setError(null);
+  dispatch({ type: 'SET_LOADING', payload: true });
+  dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
       const params = new URLSearchParams({
@@ -116,8 +101,8 @@ const useGoogleAuth = () => {
       
       if (authData.success && authData.token) {
         // Check if there's already an active session with a different user
-        const existingToken = localStorage.getItem('auth_token')
-        const existingUser = localStorage.getItem('user_data')
+  const existingToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+  const existingUser = localStorage.getItem(STORAGE_KEYS.USER_DATA)
         
         if (existingToken && existingUser && authData.user) {
           try {
@@ -130,9 +115,9 @@ const useGoogleAuth = () => {
               console.log('🔒 Forcing logout of existing session before Google login')
               removeSessionId()
               removeActiveUserId()
-              localStorage.removeItem('auth_token')
-              localStorage.removeItem('user_data')
-              localStorage.removeItem('user_id')
+              localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
+              localStorage.removeItem(STORAGE_KEYS.USER_DATA)
+              localStorage.removeItem(STORAGE_KEYS.USER_ID)
             }
           } catch (error) {
             console.error('❌ Error checking existing session:', error)
@@ -144,11 +129,11 @@ const useGoogleAuth = () => {
         console.log('🆔 Generated new session ID for Google login:', newSessionId)
         
         // Store the authentication token
-        localStorage.setItem('auth_token', authData.token);
+  localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, authData.token);
         
         // Store user info if available
         if (authData.user) {
-          localStorage.setItem('user_data', JSON.stringify(authData.user));
+          localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(authData.user));
           localStorage.setItem('user_info', JSON.stringify(authData.user));
           
           // Save session data
@@ -159,8 +144,8 @@ const useGoogleAuth = () => {
         console.log('✅ Google authentication successful with session tracking')
 
         // Get the redirect URL from localStorage
-        const redirectUrl = localStorage.getItem('google_auth_redirect');
-        localStorage.removeItem('google_auth_redirect');
+  const redirectUrl = localStorage.getItem(STORAGE_KEYS.GOOGLE_AUTH_REDIRECT);
+  localStorage.removeItem(STORAGE_KEYS.GOOGLE_AUTH_REDIRECT);
 
         // Redirect to the original URL or dashboard
         const targetUrl = redirectUrl && redirectUrl !== window.location.href 
@@ -203,10 +188,10 @@ const useGoogleAuth = () => {
       }
     } catch (err: any) {
       console.error('Error handling Google callback:', err);
-      setError(err.message);
+      dispatch({ type: 'SET_ERROR', payload: err.message });
       throw err;
     } finally {
-      setIsLoading(false);
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [router]);
 
@@ -218,7 +203,7 @@ const useGoogleAuth = () => {
     const state = urlParams.get('state');
 
     if (error) {
-      setError(`Google OAuth error: ${error}`);
+      dispatch({ type: 'SET_ERROR', payload: `Google OAuth error: ${error}` });
       return;
     }
 
@@ -235,9 +220,9 @@ const useGoogleAuth = () => {
   }, [checkGoogleAuthStatus]);
 
   return {
-    isLoading,
-    error,
-    authStatus,
+    isLoading: state.isLoading,
+    error: state.error,
+    authStatus: state.authStatus,
     initiateGoogleLogin,
     handleGoogleCallback,
     checkGoogleAuthStatus,

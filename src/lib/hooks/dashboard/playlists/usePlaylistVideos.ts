@@ -1,5 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useReducer } from "react";
+import { API_BASE_URL } from '@/lib/config/appConfig'
+import { mapAxiosError } from '@/lib/utils/errorUtils'
+import { initialPlaylistVideosState, playlistVideosReducer } from './Reducers/playlistVideosReducer'
 
 export interface PlaylistVideoDetails {
   video_id: string;
@@ -39,18 +42,15 @@ export interface PlaylistVideosResponse {
 }
 
 const usePlaylistVideos = (playlistId: string) => {
-  const [playlistData, setPlaylistData] = useState<PlaylistVideosResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(playlistVideosReducer, initialPlaylistVideosState)
 
   const fetchPlaylistVideos = async (refresh: boolean = false) => {
-    setIsLoading(true);
-    setError(null);
+    dispatch({ type: 'INIT' })
     try {
       const token = localStorage.getItem('auth_token');
 
       const response = await fetch(
-        `https://backend.postsiva.com/playlists/${playlistId}/videos?refresh=${refresh}`,
+        `${API_BASE_URL}/playlists/${playlistId}/videos?refresh=${refresh}`,
         {
           headers: {
             Accept: "application/json",
@@ -70,11 +70,12 @@ const usePlaylistVideos = (playlistId: string) => {
         data: Array.isArray(raw?.data?.videos) ? raw.data.videos : [],
         count: typeof raw?.data?.total_videos === 'number' ? raw.data.total_videos : (Array.isArray(raw?.data?.videos) ? raw.data.videos.length : 0),
       };
-      setPlaylistData(mapped);
+      dispatch({ type: 'SUCCESS', payload: mapped })
     } catch (err: any) {
-      setError(err.message);
+      const errorMessage = mapAxiosError(err, 'Failed to fetch playlist videos')
+      dispatch({ type: 'ERROR', payload: errorMessage })
     } finally {
-      setIsLoading(false);
+      // reducer sets loading state
     }
   };
 
@@ -85,9 +86,9 @@ const usePlaylistVideos = (playlistId: string) => {
   }, [playlistId]);
 
   return { 
-    playlistData, 
-    isLoading, 
-    error,
+    playlistData: state.playlistData, 
+    isLoading: state.isLoading, 
+    error: state.error,
     refetch: () => fetchPlaylistVideos(true) // Refresh with refresh=true
   };
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useReducer } from 'react'
 import axios from 'axios'
 import { 
   generateSessionId, 
@@ -12,122 +12,22 @@ import {
   getActiveUserId
 } from '@/lib/auth'
 
-export interface User {
-  id: string
-  email: string
-  username: string
-  full_name: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
+// Types now imported from ./authTypes
 
-export interface AuthState {
-  user: User | null
-  token: string | null
-  isAuthenticated: boolean
-  isLoading: boolean
-}
-
-export interface SignupData {
-  email: string
-  username: string
-  full_name: string
-  password: string
-}
-
-export interface LoginData {
-  email: string
-  password: string
-}
-
-export interface AuthResponse {
-  access_token: string
-  token_type: string
-  user: User
-}
-
-export interface SignupResponse {
-  email: string
-  username: string
-  full_name: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-  id: string
-}
-
-const API_BASE_URL = 'https://backend.postsiva.com'
-const DEBUG_LOGS = false
-
-// Create axios instance with base configuration
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'accept': 'application/json',
-    'Content-Type': 'application/json',
-  },
-})
-
-// Add request interceptor (quiet)
-api.interceptors.request.use(
-  (config) => {
-    if (DEBUG_LOGS) {
-      console.log('🚀 API Request:', {
-        method: config.method?.toUpperCase(),
-        url: config.url,
-        headers: config.headers,
-        data: config.data,
-      })
-    }
-    return config
-  },
-  (error) => {
-    if (DEBUG_LOGS) console.error('❌ API Request Error:', error)
-    return Promise.reject(error)
-  }
-)
-
-// Add response interceptor (quiet)
-api.interceptors.response.use(
-  (response) => {
-    if (DEBUG_LOGS) {
-      console.log('✅ API Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.config.url,
-        data: response.data,
-      })
-    }
-    return response
-  },
-  (error) => {
-    if (DEBUG_LOGS) {
-      console.error('❌ API Response Error:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        url: error.config?.url,
-        data: error.response?.data,
-        message: error.message,
-      })
-    }
-    return Promise.reject(error)
-  }
-)
+import { api } from './authApi'
+import { DEBUG_LOGS } from '@/lib/config/appConfig'
+import { STORAGE_KEYS } from './authConstants'
+import type { User, AuthState, SignupData, LoginData, AuthResponse, SignupResponse } from './types/authTypes'
+import { authReducer, initialAuthState } from './Reducers/authReducer'
 
 export default function useAuth() {
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    token: null,
-    isAuthenticated: false,
-    isLoading: true,
-  })
+  const [authState, dispatch] = useReducer(authReducer, initialAuthState)
 
   // Initialize auth state from localStorage with session validation
   useEffect(() => {
     if (DEBUG_LOGS) console.log('🔄 Initializing auth state from localStorage...')
-    const token = localStorage.getItem('auth_token')
-    const user = localStorage.getItem('user_data')
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+    const user = localStorage.getItem(STORAGE_KEYS.USER_DATA)
     
     if (DEBUG_LOGS) console.log('📦 localStorage data:', { 
       token: token ? 'exists' : 'not found', 
@@ -153,12 +53,7 @@ export default function useAuth() {
         
         if (DEBUG_LOGS) console.log('✅ Session validation successful')
         
-        setAuthState({
-          user: userData,
-          token,
-          isAuthenticated: true,
-          isLoading: false,
-        })
+        dispatch({ type: 'INIT', payload: { user: userData, token } })
         if (DEBUG_LOGS) console.log('✅ Auth state initialized successfully')
       } catch (error) {
         if (DEBUG_LOGS) console.error('❌ Error parsing user data:', error)
@@ -166,7 +61,7 @@ export default function useAuth() {
       }
     } else {
       if (DEBUG_LOGS) console.log('ℹ️ No auth data found, setting as unauthenticated')
-      setAuthState(prev => ({ ...prev, isLoading: false }))
+      dispatch({ type: 'INIT', payload: { user: null, token: null } })
     }
   }, [])
 
@@ -188,7 +83,7 @@ export default function useAuth() {
       if (DEBUG_LOGS) console.log('✅ Signup successful:', response.data)
       
       // Save user ID to localStorage
-      localStorage.setItem('user_id', response.data.id)
+      localStorage.setItem(STORAGE_KEYS.USER_ID, response.data.id)
       console.log('💾 Saved user ID to localStorage:', response.data.id)
       
       return response.data
@@ -213,8 +108,8 @@ export default function useAuth() {
     if (DEBUG_LOGS) console.log('🔐 Starting login process with email:', data.email)
     
     // Check if there's already an active session
-    const existingToken = localStorage.getItem('auth_token')
-    const existingUser = localStorage.getItem('user_data')
+    const existingToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+    const existingUser = localStorage.getItem(STORAGE_KEYS.USER_DATA)
     
     if (existingToken && existingUser) {
       try {
@@ -229,9 +124,9 @@ export default function useAuth() {
           console.log('🔒 Forcing logout of existing session before new login')
           removeSessionId()
           removeActiveUserId()
-          localStorage.removeItem('auth_token')
-          localStorage.removeItem('user_data')
-          localStorage.removeItem('user_id')
+          localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
+          localStorage.removeItem(STORAGE_KEYS.USER_DATA)
+          localStorage.removeItem(STORAGE_KEYS.USER_ID)
         }
       } catch (error) {
         console.error('❌ Error checking existing session:', error)
@@ -253,8 +148,8 @@ export default function useAuth() {
       console.log('🆔 Generated new session ID:', newSessionId)
       
       // Save auth data to localStorage
-      localStorage.setItem('auth_token', response.data.access_token)
-      localStorage.setItem('user_data', JSON.stringify(response.data.user))
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, response.data.access_token)
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(response.data.user))
       
       // Save session data
       setSessionId(newSessionId)
@@ -263,12 +158,7 @@ export default function useAuth() {
       if (DEBUG_LOGS) console.log('💾 Saved auth data and session to localStorage')
       
       // Update auth state
-      setAuthState({
-        user: response.data.user,
-        token: response.data.access_token,
-        isAuthenticated: true,
-        isLoading: false,
-      })
+      dispatch({ type: 'LOGIN_SUCCESS', payload: { user: response.data.user, token: response.data.access_token } })
       if (DEBUG_LOGS) console.log('🔄 Updated auth state to authenticated')
 
       // Quietly fetch and cache Gemini API key (non-blocking, ignore errors)
@@ -279,14 +169,14 @@ export default function useAuth() {
           const data = res?.data as any
           if (data) {
             if (data.api_key_preview) {
-              localStorage.setItem('gemini_api_key_preview', String(data.api_key_preview))
+              localStorage.setItem(STORAGE_KEYS.GEMINI_API_KEY_PREVIEW, String(data.api_key_preview))
             }
-            localStorage.setItem('has_gemini_key', String(!!(data.api_key_preview || data.is_active)))
+            localStorage.setItem(STORAGE_KEYS.HAS_GEMINI_KEY, String(!!(data.api_key_preview || data.is_active)))
             if (DEBUG_LOGS) console.log('🔑 Cached Gemini key presence from server')
           } else {
             // Explicitly clear presence when API returns null
-            localStorage.setItem('has_gemini_key', 'false')
-            localStorage.removeItem('gemini_api_key_preview')
+            localStorage.setItem(STORAGE_KEYS.HAS_GEMINI_KEY, 'false')
+            localStorage.removeItem(STORAGE_KEYS.GEMINI_API_KEY_PREVIEW)
             if (DEBUG_LOGS) console.log('ℹ️ No Gemini key found (null)')
           }
         } catch (e) {
@@ -361,12 +251,7 @@ export default function useAuth() {
     console.log('✅ Cleared all session and auth data')
     
     // Reset auth state
-    setAuthState({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      isLoading: false,
-    })
+    dispatch({ type: 'LOGOUT' })
     
     // Redirect to login page
     if (typeof window !== 'undefined') {
@@ -375,7 +260,7 @@ export default function useAuth() {
   }, [])
 
   const getAuthHeaders = useCallback(() => {
-    const token = localStorage.getItem('auth_token')
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
     const headers = token
       ? {
           Authorization: `Bearer ${token}`,

@@ -14,7 +14,7 @@ import useVideos from "@/lib/hooks/upload/useVideos"
 import useAllInOne from "@/lib/hooks/upload/useAllInOne"
 import usePrivacyStatus from "@/lib/hooks/upload/usePrivacyStatus"
 import { useChannelPlaylists } from "@/lib/hooks/dashboard/playlists/useChannelPlaylists"
-import { AllInOneTimestamp } from "@/lib/hooks/upload/useAllInOne"
+import { AllInOneTimestamp } from "@/lib/hooks/upload/allInOneTypes"
 import { useToast } from "@/lib/hooks/common/useToast"
 
 export default function AllInOnePage() {

@@ -6,7 +6,7 @@ export { default as useAuth } from './auth/useAuth'
 // Dashboard hooks
 export { default as useDashboardVideos } from './dashboard/videos/useVideos'
 export { default as useVideo } from './dashboard/videos/useVideo'
-export { default as usePlaylists } from './dashboard/playlists/usePlaylists'
+export { usePlaylists } from './dashboard/playlists/usePlaylists'
 export { default as usePlaylistAnalytics } from './dashboard/playlists/usePlaylistAnalytics'
 export { useChannelPlaylists } from './dashboard/playlists/useChannelPlaylists'
 
