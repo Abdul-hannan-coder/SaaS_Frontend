@@ -31,7 +31,7 @@ export default function DashboardLayout({
       }
       
       const baseTitle = routeTitles[pathname] || 'Dashboard'
-      document.title = `${baseTitle} - YouTube Automator`
+  document.title = `${baseTitle} - Postsiva`
     }
 
     updatePageTitle()

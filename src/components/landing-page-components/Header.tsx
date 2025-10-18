@@ -20,7 +20,7 @@ export function Header() {
             <div className="w-8 h-8 crypto-primary-gradient rounded-lg flex items-center justify-center group-hover:crypto-glow transition-all duration-300 crypto-glow">
               <Play className="h-4 w-4 text-white fill-current" />
             </div>
-            <span className="text-xl font-bold crypto-text-primary">YouTube Automator</span>
+            <span className="text-xl font-bold crypto-text-primary">Postsiva</span>
           </Link>
 
           {/* Desktop Navigation */}

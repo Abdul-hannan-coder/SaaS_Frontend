@@ -45,7 +45,7 @@ export function DashboardHeader() {
           <div className="w-8 h-8 crypto-primary-gradient rounded-lg flex items-center justify-center flex-shrink-0 crypto-glow">
             <Play className="h-4 w-4 text-white fill-current" />
           </div>
-          <span className="text-lg sm:text-xl font-bold crypto-text-primary hidden sm:block">YouTube Automator</span>
+          <span className="text-lg sm:text-xl font-bold crypto-text-primary hidden sm:block">Postsiva</span>
           <span className="text-lg font-bold crypto-text-primary sm:hidden">YT Auto</span>
         </Link>
 

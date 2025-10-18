@@ -148,7 +148,7 @@ export default function YouTubeConnectPage() {
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center group-hover:opacity-90 transition-opacity crypto-primary-gradient crypto-glow">
               <Play className="h-4 w-4 sm:h-5 sm:w-5 text-white fill-current" />
             </div>
-            <span className="text-xl sm:text-2xl font-bold text-foreground">YouTube Automator</span>
+            <span className="text-xl sm:text-2xl font-bold text-foreground">Postsiva</span>
           </Link>
         </div>
 

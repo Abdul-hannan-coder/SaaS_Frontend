@@ -304,7 +304,7 @@ function LoginContent() {
             <div className="w-10 h-10 rounded-lg flex items-center justify-center group-hover:opacity-90 transition-opacity crypto-primary-gradient crypto-glow">
               <Play className="h-5 w-5 text-white fill-current" />
             </div>
-            <span className="text-2xl font-bold crypto-text-primary">YouTube Automator</span>
+            <span className="text-2xl font-bold crypto-text-primary">Postsiva</span>
           </Link>
         </div>
 

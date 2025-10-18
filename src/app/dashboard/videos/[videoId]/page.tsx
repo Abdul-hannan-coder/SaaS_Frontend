@@ -146,7 +146,7 @@ export default function VideoDetailPage() {
   // Update page title when video data loads
   useEffect(() => {
     if (videoData?.title) {
-      document.title = `${videoData.title} - YouTube Automator`;
+  document.title = `${videoData.title} - Postsiva`;
     }
   }, [videoData?.title]);
 

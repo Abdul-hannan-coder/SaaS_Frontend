@@ -12,7 +12,7 @@ export function Footer() {
               <div className="w-8 h-8 crypto-primary-gradient rounded-lg flex items-center justify-center crypto-glow">
                 <Play className="h-4 w-4 text-white fill-current" />
               </div>
-              <span className="text-xl font-bold crypto-text-primary">YouTube Automator</span>
+              <span className="text-xl font-bold crypto-text-primary">Postsiva</span>
             </Link>
             <p className="crypto-text-secondary max-w-xs">
               Automate your YouTube success with AI-powered content generation and smart scheduling.
@@ -116,7 +116,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-primary mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="crypto-text-secondary text-sm">© 2025 YouTube Automator. All rights reserved.</p>
+          <p className="crypto-text-secondary text-sm">© 2025 Postsiva. All rights reserved.</p>
           <p className="crypto-text-secondary text-sm mt-4 md:mt-0">Made with ❤️ for YouTube creators</p>
         </div>
       </div>

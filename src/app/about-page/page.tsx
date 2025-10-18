@@ -16,7 +16,7 @@ export default function AboutPage() {
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center space-x-2 bg-primary/10 rounded-full px-4 py-2 mb-6">
               <Play className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-primary">About YouTube Automator</span>
+              <span className="text-sm font-medium text-primary">About Postsiva</span>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
               Revolutionizing YouTube Content Creation
@@ -69,7 +69,7 @@ export default function AboutPage() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Story</h2>
-              <p className="text-xl text-muted-foreground">How YouTube Automator came to life</p>
+              <p className="text-xl text-muted-foreground">How Postsiva came to life</p>
             </div>
 
             <div className="space-y-8">
@@ -108,7 +108,7 @@ export default function AboutPage() {
                 <div>
                   <h4 className="text-lg font-semibold mb-2">The Impact We're Making</h4>
                   <p className="text-muted-foreground">
-                    Today, thousands of creators use YouTube Automator to streamline their workflow, increase their video
+                    Today, thousands of creators use Postsiva to streamline their workflow, increase their video
                     performance, and grow their channels faster than ever before. We're proud to be part of their
                     success stories.
                   </p>
@@ -169,7 +169,7 @@ export default function AboutPage() {
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Transform Your YouTube Channel?</h2>
             <p className="text-xl text-muted-foreground mb-8">
-              Join thousands of creators who are already using YouTube Automator to grow their channels faster and more
+              Join thousands of creators who are already using Postsiva to grow their channels faster and more
               efficiently.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

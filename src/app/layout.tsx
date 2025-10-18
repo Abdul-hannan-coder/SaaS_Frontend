@@ -13,7 +13,7 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: 'YouTube Automator',
+  title: 'Postsiva',
   description: 'Automate your YouTube success with AI-powered content generation and smart scheduling.'
 }
 

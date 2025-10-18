@@ -234,7 +234,7 @@ export default function FeaturesPage() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose YouTube Automator?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Postsiva?</h2>
             <p className="text-xl text-muted-foreground">See how we compare to traditional methods</p>
           </div>
 
@@ -268,7 +268,7 @@ export default function FeaturesPage() {
 
               <Card className="p-6 border-2 border-primary/20 bg-primary/5">
                 <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-xl text-primary">With YouTube Automator</CardTitle>
+                  <CardTitle className="text-xl text-primary">With Postsiva</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <ul className="space-y-3">
