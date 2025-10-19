@@ -3,7 +3,7 @@
 import type React from "react"
 import { Suspense } from "react"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import type { AxiosError } from "axios"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -27,6 +27,7 @@ import {
   removeActiveUserId,
   getUserData
 } from "@/lib/auth"
+import useCredential from "@/lib/hooks/ai/useCredential"
 
 function LoginContent() {
   const [email, setEmail] = useState("")
@@ -42,12 +43,33 @@ function LoginContent() {
   const searchParams = useSearchParams()
   const { login, isAuthenticated } = useAuth()
   const { toast } = useToast()
+  const { getYouTubeToken } = useCredential()
 
   const renderFullScreenLoader = () => (
     <div className="min-h-screen crypto-gradient-bg flex items-center justify-center p-4">
       <span className="inline-block animate-spin rounded-full" style={{ width: 24, height: 24, borderWidth: 3, borderColor: "var(--brand-primary) transparent transparent transparent" }} />
     </div>
   )
+
+  // Helper function to check YouTube token and redirect appropriately
+  const checkTokenAndRedirect = useCallback(async () => {
+    try {
+      console.log('🔍 Checking for existing YouTube token...')
+      const token = await getYouTubeToken()
+      
+      if (token && token.has_access_token) {
+        console.log('✅ YouTube token found, redirecting to dashboard')
+        router.replace('/dashboard')
+      } else {
+        console.log('⚠️ No YouTube token found, redirecting to youtube-connect')
+        router.replace('/auth/youtube-connect')
+      }
+    } catch (error) {
+      console.error('❌ Error checking YouTube token:', error)
+      // If error checking token, redirect to youtube-connect to be safe
+      router.replace('/auth/youtube-connect')
+    }
+  }, [getYouTubeToken, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,7 +93,7 @@ function LoginContent() {
     try {
       await login({ email, password })
       setRedirecting(true)
-      router.replace("/auth/youtube-connect")
+      await checkTokenAndRedirect()
     } catch (err: any) {
       let message = "Login failed. Please try again."
       const axiosErr = err as AxiosError<any>
@@ -100,7 +122,7 @@ function LoginContent() {
     try {
       await login(pendingLoginData)
       setRedirecting(true)
-      router.replace("/auth/youtube-connect")
+      await checkTokenAndRedirect()
     } catch (err: any) {
       let message = "Login failed. Please try again."
       const axiosErr = err as AxiosError<any>
@@ -167,8 +189,8 @@ function LoginContent() {
       } catch {}
     }
     setRedirecting(true)
-    router.replace('/auth/youtube-connect')
-  }, [router])
+    checkTokenAndRedirect()
+  }, [router, checkTokenAndRedirect])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -265,8 +287,8 @@ function LoginContent() {
     } catch {}
 
     setRedirecting(true)
-    router.replace('/auth/youtube-connect')
-  }, [searchParams, router])
+    checkTokenAndRedirect()
+  }, [searchParams, router, checkTokenAndRedirect])
 
   const hasOauthToken = !!(typeof window !== 'undefined' && (searchParams.get('access_token') || searchParams.get('token')))
 
@@ -274,10 +296,10 @@ function LoginContent() {
     const run = async () => {
       if (!isAuthenticated) return
       setRedirecting(true)
-      router.replace("/auth/youtube-connect")
+      await checkTokenAndRedirect()
     }
     run()
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, checkTokenAndRedirect])
 
   if (isSubmitting || hasOauthToken || redirecting) {
     return renderFullScreenLoader()

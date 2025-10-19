@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Play, Youtube, Loader2, ExternalLink, RefreshCw, LogOut } from "lucide-react"
+import { Play, Youtube, Loader2, ExternalLink, LogOut } from "lucide-react"
 import useCredential from "@/lib/hooks/ai/useCredential"
 import useYouTubeCredentials from "@/lib/hooks/youtube/useYouTubeCredentials"
 import { useAuth } from "@/lib/hooks/auth"
@@ -22,7 +22,6 @@ export default function YouTubeConnectPage() {
   const { 
     createYouTubeToken, 
     openAuthUrl, 
-    resetTokenState,
     isLoading, 
     error, 
     authUrl, 
@@ -121,11 +120,6 @@ export default function YouTubeConnectPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleRetry = () => {
-    resetTokenState()
-    setShouldPoll(false)
-  }
-
   const handleLogout = () => {
     logout()
   }
@@ -173,18 +167,6 @@ export default function YouTubeConnectPage() {
               <ExternalLink className="h-4 w-4 mr-2" />
               Connect with YouTube
             </Button>
-
-            {(error || credentialsError) && (
-              <Button
-                onClick={handleRetry}
-                variant="outline"
-                className="w-full"
-                size="lg"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Try Again
-              </Button>
-            )}
 
             <div className="text-center">
               <p className="text-xs text-muted-foreground">
