@@ -92,12 +92,22 @@ export function Footer() {
             <h3 className="font-semibold crypto-text-primary">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="#" className="crypto-text-secondary hover:crypto-text-primary transition-colors">
+                <Link
+                  href="https://privacy-policy.postsiva.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="crypto-text-secondary hover:crypto-text-primary transition-colors"
+                >
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="#" className="crypto-text-secondary hover:crypto-text-primary transition-colors">
+                <Link
+                  href="https://terms.postsiva.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="crypto-text-secondary hover:crypto-text-primary transition-colors"
+                >
                   Terms of Service
                 </Link>
               </li>

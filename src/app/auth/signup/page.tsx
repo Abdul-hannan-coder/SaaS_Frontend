@@ -237,11 +237,21 @@ export default function SignupPage() {
                 />
                 <Label htmlFor="terms" className="text-sm crypto-text-secondary">
                   I agree to the{" "}
-                  <Link href="#" className="crypto-text-primary hover:underline">
+                  <Link
+                    href="https://terms.postsiva.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="crypto-text-primary hover:underline"
+                  >
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link href="#" className="crypto-text-primary hover:underline">
+                  <Link
+                    href="https://privacy-policy.postsiva.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="crypto-text-primary hover:underline"
+                  >
                     Privacy Policy
                   </Link>
                 </Label>
