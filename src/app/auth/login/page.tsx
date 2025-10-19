@@ -54,19 +54,19 @@ function LoginContent() {
   // Helper function to check YouTube token and redirect appropriately
   const checkTokenAndRedirect = useCallback(async () => {
     try {
-      console.log('🔍 Checking for existing YouTube token...')
-      const token = await getYouTubeToken()
+      // Add small delay to ensure auth token is fully set in localStorage
+      await new Promise(resolve => setTimeout(resolve, 300))
       
-      if (token && token.has_access_token) {
+      const token = await getYouTubeToken()
+      if (token && token.access_token) {
         console.log('✅ YouTube token found, redirecting to dashboard')
         router.replace('/dashboard')
       } else {
-        console.log('⚠️ No YouTube token found, redirecting to youtube-connect')
+        console.log('⚠️ No YouTube token, redirecting to connect')
         router.replace('/auth/youtube-connect')
       }
     } catch (error) {
       console.error('❌ Error checking YouTube token:', error)
-      // If error checking token, redirect to youtube-connect to be safe
       router.replace('/auth/youtube-connect')
     }
   }, [getYouTubeToken, router])
