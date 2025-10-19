@@ -2,6 +2,7 @@ import { Header } from "@/components/landing-page-components/Header"
 import { Footer } from "@/components/landing-page-components/Footer"
 import { HeroSection } from "@/components/landing-page-components/hero-section"
 import { WorkSection } from "@/components/landing-page-components/work-section"
+import { AboutSection } from "@/components/landing-page-components/about-section"
 import { HomeFeatureSection } from "@/components/landing-page-components/feature-showcase"
 import { TestimonialsSection } from "@/components/Testimonials-Section"
 import { FAQSection } from "@/components/landing-page-components/faq-section"
@@ -13,6 +14,8 @@ export default function LandingPage() {
       <Header />
       {/* Hero Section */}
       <HeroSection />
+  {/* About Section (added for Google OAuth verification) */}
+  <AboutSection />
       {/* Work Section */}
       <WorkSection />
       {/* Features Section */}
