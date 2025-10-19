@@ -121,7 +121,8 @@ export default function YouTubeConnectPage() {
   }, [])
 
   const handleLogout = () => {
-    logout()
+    const redirectPath = logout()
+    router.push(redirectPath)
   }
 
   const isBusy = isLoading || isConnecting || isChecking || isPolling || redirecting

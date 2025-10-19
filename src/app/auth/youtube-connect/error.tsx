@@ -1,11 +1,14 @@
 "use client"
 
 import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertCircle } from "lucide-react"
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }, reset: () => void }) {
+  const router = useRouter()
+  
   useEffect(() => {
     // Optionally log to monitoring here
     console.error("YouTube Connect route error:", error)
@@ -22,11 +25,11 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            We couldn’t load the YouTube connect flow. Please try again.
+            We couldn't load the YouTube connect flow. Please try again.
           </p>
           <div className="flex gap-2">
             <Button onClick={() => reset()} className="flex-1">Try again</Button>
-            <Button variant="outline" className="flex-1" onClick={() => window.location.replace('/auth/youtube-connect')}>
+            <Button variant="outline" className="flex-1" onClick={() => router.refresh()}>
               Reload page
             </Button>
           </div>
@@ -35,5 +38,3 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
     </div>
   )
 }
-
-

@@ -207,24 +207,16 @@ export default function useAuth() {
     }
   }, [])
 
-  const logout = useCallback(() => {
-    console.log('🔓 Logging out user...')
+    const logout = useCallback((redirectPath: string = '/auth/login') => {
+    console.log('� Starting logout process...')
     
-    // Clear session data first
-    removeSessionId()
-    removeActiveUserId()
-    
-    // Clear all localStorage items related to the application
+    // Clear all storage items
     const itemsToRemove = [
-      'auth_token',
-      'user_data', 
+      STORAGE_KEYS.AUTH_TOKEN,
+      STORAGE_KEYS.USER_DATA,
+      STORAGE_KEYS.SESSION_ID,
+      STORAGE_KEYS.ACTIVE_USER_ID,
       'user_id',
-      'session_id',
-      'active_user_id',
-      'gemini_api_key',
-      'current_video_data',
-      'current_video_id',
-      'youtube_redirect_after_auth'
     ]
     
     itemsToRemove.forEach(item => {
@@ -253,10 +245,9 @@ export default function useAuth() {
     // Reset auth state
     dispatch({ type: 'LOGOUT' })
     
-    // Redirect to login page
-    if (typeof window !== 'undefined') {
-      window.location.href = '/auth/login'
-    }
+    // Return the redirect path so the caller can handle navigation
+    // This allows using Next.js router instead of window.location
+    return redirectPath
   }, [])
 
   const getAuthHeaders = useCallback(() => {

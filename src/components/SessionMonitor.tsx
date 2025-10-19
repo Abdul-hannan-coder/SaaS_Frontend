@@ -2,12 +2,14 @@
 
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { validateSession, logout } from '@/lib/auth'
+import { validateSession } from '@/lib/auth'
+import { useAuth } from '@/lib/hooks/auth'
 import { useToast } from '@/lib/hooks/common/useToast'
 
 export function SessionMonitor() {
   const router = useRouter()
   const { toast } = useToast()
+  const { logout } = useAuth()
   const lastValidationRef = useRef<number>(Date.now())
   const conflictDetectedRef = useRef<boolean>(false)
 
@@ -48,7 +50,8 @@ export function SessionMonitor() {
           
           // Delay logout slightly to ensure toast is shown
           setTimeout(() => {
-            logout()
+            const redirectPath = logout()
+            router.push(redirectPath)
           }, 1000)
         }
       }
@@ -79,7 +82,8 @@ export function SessionMonitor() {
           })
 
           setTimeout(() => {
-            logout()
+            const redirectPath = logout()
+            router.push(redirectPath)
           }, 1500)
         }
       }

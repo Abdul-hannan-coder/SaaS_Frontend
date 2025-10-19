@@ -1,5 +1,5 @@
 "use client"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { List, RefreshCw, Eye, ThumbsUp, MessageCircle, Video, Clock, TrendingUp, TrendingDown, BarChart3 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -89,6 +89,7 @@ export default function PlaylistsPage() {
 }
 
 function PlaylistData({ playlistId }: { playlistId: string }) {
+  const router = useRouter()
   const { playlistData, isLoading, error, refetch } = usePlaylistAnalytics(playlistId)
   const { 
     playlistData: playlistVideos, 
@@ -109,7 +110,7 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
       <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] text-center">
         <h2 className="text-2xl font-bold text-destructive mb-2">Failed to load playlist</h2>
         <p className="text-muted-foreground mb-4">{mapApiErrorToMessage(error) || 'No playlist data available'}</p>
-        <Button onClick={() => window.location.reload()}>
+        <Button onClick={() => router.refresh()}>
           <RefreshCw className="w-4 h-4 mr-2" />
           Try Again
         </Button>
