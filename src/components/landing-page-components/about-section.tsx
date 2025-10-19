@@ -9,7 +9,7 @@ export function AboutSection() {
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">About PostSiva</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">About Postsiva</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               <strong>PostSiva is an AI-powered YouTube automation platform</strong> designed to help
               content creators, businesses, and marketing professionals streamline their YouTube workflow.
