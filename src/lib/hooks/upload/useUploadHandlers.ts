@@ -247,6 +247,12 @@ export const useUploadHandlers = ({
       return
     }
 
+    // Guard against accidental double-clicks / re-entrancy
+    if (state.isProcessing) {
+      console.warn('[UploadHandlers] generateThumbnails ignored: already processing')
+      return
+    }
+
     updateState({ isProcessing: true })
     try {
       console.log('[UploadHandlers] Calling generateThumbnailsAPI with videoId:', videoId)

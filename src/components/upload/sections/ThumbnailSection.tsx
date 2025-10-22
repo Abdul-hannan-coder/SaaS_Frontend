@@ -39,23 +39,6 @@ const OptimizedThumbnail = ({
   const [imageError, setImageError] = useState(false)
   const imgRef = useRef<HTMLImageElement>(null)
 
-  useEffect(() => {
-    if (src) {
-      // Preload the image
-      const img = new Image()
-      img.onload = () => {
-        setImageLoaded(true)
-        onLoad()
-      }
-      img.onerror = () => {
-        setImageError(true)
-        onLoad()
-      }
-      // Load the URL exactly as provided (avoid adding params that remote server may not accept)
-      img.src = src
-    }
-  }, [src, onLoad])
-
   if (imageError) {
     return (
       <div className="relative aspect-video border-2 rounded-lg border-red-300 bg-red-50 flex items-center justify-center">
@@ -82,6 +65,14 @@ const OptimizedThumbnail = ({
         ref={imgRef}
         src={src}
         referrerPolicy="no-referrer"
+        onLoad={() => {
+          setImageLoaded(true)
+          onLoad()
+        }}
+        onError={() => {
+          setImageError(true)
+          onLoad()
+        }}
         alt={alt}
         className={`w-full h-full object-cover rounded-lg transition-opacity duration-300 ${
           imageLoaded ? 'opacity-100' : 'opacity-0'
@@ -115,7 +106,7 @@ export function ThumbnailSection({
 
   const handleImgLoad = useCallback(() => setImgLoading(false), [])
 
-  const handleThumbnailSelect = useCallback(async (thumbnail: string) => {
+  const handleThumbnailSelect = useCallback((thumbnail: string) => {
     console.log('[ThumbnailSection] Thumbnail selected:', {
       thumbnail: thumbnail.substring(0, 100) + '...',
       currentSelected: state.content.selectedThumbnail,
@@ -130,35 +121,7 @@ export function ThumbnailSection({
         selectedThumbnail: thumbnail
       }
     })
-
-    // Save the selected thumbnail to backend with proper error handling
-    const videoId = getCurrentVideoId()
-    if (videoId && thumbnail) {
-      setIsSaving(true)
-      try {
-        console.log('[ThumbnailSection] Saving thumbnail to backend:', {
-          videoId,
-          thumbnailUrl: thumbnail,
-          fullUrl: thumbnail
-        })
-        
-        const result = await saveThumbnail(videoId, thumbnail)
-        console.log('[ThumbnailSection] Thumbnail saved successfully:', result)
-        
-        // Show success feedback
-        if (result?.success) {
-          console.log('[ThumbnailSection] Save confirmed with success response')
-        }
-      } catch (error) {
-        console.error('[ThumbnailSection] Failed to save thumbnail:', error)
-        // Show error feedback but don't block UI
-      } finally {
-        setIsSaving(false)
-      }
-    } else {
-      console.warn('[ThumbnailSection] Missing videoId or thumbnail for save:', { videoId, thumbnail })
-    }
-  }, [state.content, updateState, getCurrentVideoId, saveThumbnail, generatedThumbnails.length])
+  }, [state.content, updateState, generatedThumbnails.length])
 
   const handleCustomThumbnailUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -173,9 +136,25 @@ export function ThumbnailSection({
     }
   }, [updateState, state.content])
 
-  const handleSaveAndNext = useCallback(() => {
-    updateState({ currentStep: "preview" })
-  }, [updateState])
+  const handleSaveAndNext = useCallback(async () => {
+    const videoId = getCurrentVideoId()
+    const thumbnail = state.content.selectedThumbnail
+    if (!videoId || !thumbnail) {
+      console.warn('[ThumbnailSection] Cannot save: missing videoId or selectedThumbnail', { videoId, thumbnail })
+      return
+    }
+    setIsSaving(true)
+    try {
+      console.log('[ThumbnailSection] Saving thumbnail on Save & Next:', { videoId, thumbnail })
+      const result = await saveThumbnail(videoId, thumbnail)
+      console.log('[ThumbnailSection] Save & Next result:', result)
+      updateState({ currentStep: "preview" })
+    } catch (error) {
+      console.error('[ThumbnailSection] Save & Next failed:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }, [getCurrentVideoId, saveThumbnail, state.content.selectedThumbnail, updateState])
 
   // Debug logging
   console.log('[ThumbnailSection] Component state:', {
