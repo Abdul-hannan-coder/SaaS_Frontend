@@ -51,11 +51,8 @@ const OptimizedThumbnail = ({
         setImageError(true)
         onLoad()
       }
-      // Add cache busting and optimization parameters
-      const optimizedSrc = src.includes('?') 
-        ? `${src}&cache=${Date.now()}&quality=85&format=webp` 
-        : `${src}?cache=${Date.now()}&quality=85&format=webp`
-      img.src = optimizedSrc
+      // Load the URL exactly as provided (avoid adding params that remote server may not accept)
+      img.src = src
     }
   }, [src, onLoad])
 
@@ -83,9 +80,8 @@ const OptimizedThumbnail = ({
       )}
       <img
         ref={imgRef}
-        src={src.includes('?') 
-          ? `${src}&cache=${Date.now()}&quality=85&format=webp` 
-          : `${src}?cache=${Date.now()}&quality=85&format=webp`}
+        src={src}
+        referrerPolicy="no-referrer"
         alt={alt}
         className={`w-full h-full object-cover rounded-lg transition-opacity duration-300 ${
           imageLoaded ? 'opacity-100' : 'opacity-0'
