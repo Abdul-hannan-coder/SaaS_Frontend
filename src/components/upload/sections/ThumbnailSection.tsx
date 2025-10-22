@@ -56,11 +56,6 @@ const OptimizedThumbnail = ({
       }`}
       onClick={onSelect}
     >
-      {!imageLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
-          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-        </div>
-      )}
       <img
         ref={imgRef}
         src={src}
@@ -74,9 +69,7 @@ const OptimizedThumbnail = ({
           onLoad()
         }}
         alt={alt}
-        className={`w-full h-full object-cover rounded-lg transition-opacity duration-300 ${
-          imageLoaded ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`w-full h-full object-cover rounded-lg ${imageLoaded ? '' : ''}`}
         loading="eager" // Prioritize thumbnail loading
       />
       {isSelected && (
@@ -193,40 +186,24 @@ export function ThumbnailSection({
           disabled={state.isProcessing || thumbnailsLoading} 
           className="w-full crypto-button-primary"
         >
-          {thumbnailsLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Generating Thumbnail...
-            </>
-          ) : (
-            <>
-              <ImageIcon className="w-4 h-4 mr-2" />
-              Generate Thumbnail with AI
-            </>
-          )}
+          <>
+            <ImageIcon className="w-4 h-4 mr-2" />
+            {thumbnailsLoading ? 'Generating Thumbnail...' : 'Generate Thumbnail with AI'}
+          </>
         </Button>
 
         {(state.content.thumbnails.length > 0 || generatedThumbnails.length > 0 || thumbnailsLoading) && (
           <div className="space-y-4">
-            <Label className="crypto-text-primary flex items-center gap-2">
-              {thumbnailsLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Generating thumbnail...
-                </>
-              ) : (
-                "Select a thumbnail:"
-              )}
-            </Label>
+            <Label className="crypto-text-primary flex items-center gap-2">Thumbnail:</Label>
 
             <div className="grid grid-cols-1 gap-2">
-              {thumbnailsLoading && (
+              {(thumbnailsLoading || imgLoading) && (
                 <div className="relative aspect-video border-2 rounded-lg border-primary/30 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
               )}
 
-              {!thumbnailsLoading && (state.content.thumbnails[0] || generatedThumbnails[0]) && (
+              {!(thumbnailsLoading || imgLoading) && (state.content.thumbnails[0] || generatedThumbnails[0]) && (
                 <OptimizedThumbnail
                   key={`thumb-0-${state.content.thumbnails[0] || generatedThumbnails[0]}`}
                   src={state.content.thumbnails[0] || generatedThumbnails[0]}
