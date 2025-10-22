@@ -66,7 +66,6 @@ export const useUploadPage = () => {
     regenerateThumbnails,
     saveThumbnail,
     generatedThumbnails,
-    thumbnailLoadingStates,
     isLoading: thumbnailsLoading
   } = useThumbnail()
   const {
@@ -186,8 +185,7 @@ export const useUploadPage = () => {
     descriptionLoading,
     generatedTimestamps,
     timestampsLoading,
-    generatedThumbnails,
-    thumbnailLoadingStates,
+  generatedThumbnails,
     thumbnailsLoading,
     previewData,
     previewLoading,

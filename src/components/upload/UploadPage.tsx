@@ -30,8 +30,7 @@ export default function UploadPage() {
     descriptionLoading,
     generatedTimestamps,
     timestampsLoading,
-    generatedThumbnails,
-    thumbnailLoadingStates,
+  generatedThumbnails,
     thumbnailsLoading,
     saveThumbnail,
     previewData,
@@ -247,7 +246,6 @@ export default function UploadPage() {
               updateState={updateState}
               handlers={handlers}
               generatedThumbnails={generatedThumbnails}
-              thumbnailLoadingStates={thumbnailLoadingStates}
               thumbnailsLoading={thumbnailsLoading}
               saveThumbnail={saveThumbnail}
               getCurrentVideoId={getCurrentVideoId}

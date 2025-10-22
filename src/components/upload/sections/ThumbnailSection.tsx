@@ -4,18 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Skeleton } from "@/components/ui/skeleton"
 import { ImageIcon, RefreshCw, CheckCircle, Loader2 } from "lucide-react"
 import { UploadState, UploadHandlers } from "@/types/upload"
 import { useEffect, useState, useCallback, useRef } from "react"
-import { ThumbnailProgress } from "../ThumbnailProgress"
+// Single-thumbnail flow – no progress bar needed
 
 interface ThumbnailSectionProps {
   state: UploadState
   updateState: (updates: Partial<UploadState>) => void
   handlers: UploadHandlers
   generatedThumbnails: string[]
-  thumbnailLoadingStates: boolean[]
   thumbnailsLoading: boolean
   saveThumbnail: (videoId: string, thumbnailUrl: string) => Promise<any>
   getCurrentVideoId: () => string | null
@@ -108,30 +106,18 @@ export function ThumbnailSection({
   updateState,
   handlers,
   generatedThumbnails,
-  thumbnailLoadingStates,
   thumbnailsLoading,
   saveThumbnail,
   getCurrentVideoId
 }: ThumbnailSectionProps) {
-  const [imgLoading, setImgLoading] = useState<boolean[]>([false, false, false, false, false])
+  const [imgLoading, setImgLoading] = useState<boolean>(false)
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
-    if (thumbnailsLoading) {
-      setImgLoading([true, true, true, true, true])
-    } else {
-      // Reset when not loading
-      setImgLoading([false, false, false, false, false])
-    }
+    setImgLoading(thumbnailsLoading)
   }, [thumbnailsLoading])
 
-  const handleImgLoad = useCallback((idx: number) => {
-    setImgLoading(prev => {
-      const next = [...prev]
-      next[idx] = false
-      return next
-    })
-  }, [])
+  const handleImgLoad = useCallback(() => setImgLoading(false), [])
 
   const handleThumbnailSelect = useCallback(async (thumbnail: string) => {
     console.log('[ThumbnailSection] Thumbnail selected:', {
@@ -235,77 +221,47 @@ export function ThumbnailSection({
           {thumbnailsLoading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Generating Thumbnails...
+              Generating Thumbnail...
             </>
           ) : (
             <>
               <ImageIcon className="w-4 h-4 mr-2" />
-              Generate 5 Thumbnails with AI
+              Generate Thumbnail with AI
             </>
           )}
         </Button>
 
         {(state.content.thumbnails.length > 0 || generatedThumbnails.length > 0 || thumbnailsLoading) && (
           <div className="space-y-4">
-            <ThumbnailProgress
-              progress={(generatedThumbnails.length / 5) * 100}
-              isGenerating={thumbnailsLoading}
-              generatedCount={generatedThumbnails.length}
-            />
-            
             <Label className="crypto-text-primary flex items-center gap-2">
               {thumbnailsLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Generating thumbnails...
+                  Generating thumbnail...
                 </>
               ) : (
                 "Select a thumbnail:"
               )}
             </Label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-              {/* Show 5 slots - either loading skeletons or actual thumbnails */}
-              {Array.from({ length: 5 }).map((_, index) => {
-                const thumbnails = state.content.thumbnails.length > 0 ? state.content.thumbnails : generatedThumbnails
-                const thumbnail = thumbnails[index]
-                const isLoading = thumbnailLoadingStates[index] || imgLoading[index]
 
-                if (isLoading || (!thumbnail && thumbnailsLoading)) {
-                  // Show enhanced skeleton loader for this slot
-                  return (
-                    <div
-                      key={index}
-                      className="relative aspect-video border-2 rounded-lg border-primary/30 bg-gradient-to-br from-gray-100 to-gray-200"
-                    >
-                      <Skeleton className="w-full h-full rounded-lg" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="flex flex-col items-center gap-1">
-                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                          <span className="text-xs text-gray-600">{index + 1}/5</span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                }
+            <div className="grid grid-cols-1 gap-2">
+              {thumbnailsLoading && (
+                <div className="relative aspect-video border-2 rounded-lg border-primary/30 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              )}
 
-                if (!thumbnail) {
-                  // Don't show empty slots if not loading
-                  return null
-                }
-
-                // Show actual thumbnail with optimization
-                return (
-                  <OptimizedThumbnail
-                    key={`thumb-${index}-${thumbnail}`}
-                    src={thumbnail}
-                    alt={`Thumbnail ${index + 1}`}
-                    index={index}
-                    isSelected={state.content.selectedThumbnail === thumbnail}
-                    onSelect={() => handleThumbnailSelect(thumbnail)}
-                    onLoad={() => handleImgLoad(index)}
-                  />
-                )
-              })}
+              {!thumbnailsLoading && (state.content.thumbnails[0] || generatedThumbnails[0]) && (
+                <OptimizedThumbnail
+                  key={`thumb-0-${state.content.thumbnails[0] || generatedThumbnails[0]}`}
+                  src={state.content.thumbnails[0] || generatedThumbnails[0]}
+                  alt={`Thumbnail`}
+                  index={0}
+                  isSelected={state.content.selectedThumbnail === (state.content.thumbnails[0] || generatedThumbnails[0])}
+                  onSelect={() => handleThumbnailSelect(state.content.thumbnails[0] || generatedThumbnails[0])}
+                  onLoad={handleImgLoad}
+                />
+              )}
             </div>
 
             <div className="flex gap-2">
@@ -316,13 +272,12 @@ export function ThumbnailSection({
                 className="flex-1 sm:flex-none crypto-button-secondary"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
-                Regenerate 5 Thumbnails
+                Regenerate Thumbnail
               </Button>
-              
               {generatedThumbnails.length > 0 && (
                 <div className="text-sm text-green-600 flex items-center gap-1">
                   <CheckCircle className="w-4 h-4" />
-                  {generatedThumbnails.length}/5 loaded
+                  1/1 ready
                 </div>
               )}
             </div>

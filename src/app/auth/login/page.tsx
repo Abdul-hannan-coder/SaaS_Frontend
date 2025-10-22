@@ -58,7 +58,7 @@ function LoginContent() {
       await new Promise(resolve => setTimeout(resolve, 300))
       
       const token = await getYouTubeToken()
-      if (token && token.access_token) {
+      if (token && token.status === 'valid' && token.has_access_token) {
         console.log('✅ YouTube token found, redirecting to dashboard')
         router.replace('/dashboard')
       } else {

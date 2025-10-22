@@ -12,10 +12,7 @@ import {
   ThumbnailSaveResponse,
   ThumbnailUploadResponse,
 } from './thumbnailTypes'
-import {
-  initialThumbnailState,
-  thumbnailReducer,
-} from './thumbnailReducer'
+import { initialThumbnailState, thumbnailReducer } from './thumbnailReducer'
 
 export default function useThumbnail() {
   const { getAuthHeaders } = useAuth()
@@ -54,13 +51,13 @@ export default function useThumbnail() {
   }, [getAuthHeaders])
 
   const generateThumbnails = useCallback(async (videoId: string): Promise<ThumbnailBatchResponse | undefined> => {
-    console.log('[Thumbnail][Batch Generate] Entry point - videoId received:', {
+    console.log('[Thumbnail][Single Mode] Entry point - videoId received:', {
       videoId,
       videoIdType: typeof videoId,
       videoIdLength: videoId?.length,
       isUUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(videoId || '')
     })
-    
+
     if (!videoId) {
       const errorMsg = 'Video ID is required'
       dispatch({ type: 'ERROR', payload: errorMsg })
@@ -68,94 +65,37 @@ export default function useThumbnail() {
       return
     }
 
-  dispatch({ type: 'INIT_BATCH' })
+    dispatch({ type: 'INIT_SINGLE' })
 
     try {
-      console.log('[Thumbnail][Batch Generate] Starting generation of 5 thumbnails for video:', videoId)
+      console.log('[Thumbnail][Single Mode] Generating 1 thumbnail for video:', videoId)
+      const result = await generateSingleThumbnail(videoId)
 
-      // Generate 5 thumbnails concurrently with staggered requests to avoid overloading
-      const generateWithDelay = async (index: number): Promise<{result: ThumbnailGenerateResponse | null, index: number}> => {
-        // Add small delay between requests to prevent rate limiting
-        await new Promise(resolve => setTimeout(resolve, index * 200))
-        
-        try {
-          const result = await generateSingleThumbnail(videoId)
-          
-          // Mark this specific thumbnail as loaded and update state immediately
-          dispatch({ type: 'SET_ITEM_DONE', index })
-          
-          // Add thumbnail to the list as soon as it's ready
-          if (result?.image_url) {
-            dispatch({ type: 'ADD_OR_SET_THUMBNAIL', index, url: result.image_url })
-          }
-          
-          return { result: result || null, index }
-        } catch (error) {
-          console.error(`[Thumbnail][Batch Generate] Failed to generate thumbnail ${index + 1}:`, error)
-          // Mark as failed (not loading anymore)
-          dispatch({ type: 'SET_ITEM_DONE', index })
-          return { result: null, index }
-        }
+      if (!result?.image_url) {
+        throw new Error(result?.message || 'Failed to generate thumbnail')
       }
 
-      // Generate all thumbnails with staggered timing
-      const promises = Array.from({ length: 5 }, (_, index) => generateWithDelay(index))
-      const results = await Promise.allSettled(promises)
-      
-      // Extract successful thumbnails
-      const thumbnails: string[] = []
-      const failedCount = results.filter((result, index) => {
-        if (result.status === 'fulfilled' && result.value?.result?.image_url) {
-          thumbnails.push(result.value.result.image_url)
-          console.log(`[Thumbnail][Batch Generate] Thumbnail ${index + 1} generated:`, result.value.result.image_url)
-          return false
-        } else {
-          console.error(`[Thumbnail][Batch Generate] Thumbnail ${index + 1} failed:`, result)
-          return true
-        }
-      }).length
+      dispatch({ type: 'SUCCESS_SINGLE', thumbnail: result.image_url })
 
-      console.log('[Thumbnail][Batch Generate] Results', {
-        totalRequested: 5,
-        successful: thumbnails.length,
-        failed: failedCount,
-        thumbnails: thumbnails.map((url, i) => `Thumbnail ${i + 1}: ${url.substring(0, 100)}...`)
-      })
-
-      if (thumbnails.length === 0) {
-        throw new Error('Failed to generate any thumbnails')
-      }
-
-      // Final update with all thumbnails
-  dispatch({ type: 'SUCCESS_BATCH', thumbnails })
-
-      const successMessage = thumbnails.length === 5 
-        ? 'All 5 thumbnails generated successfully!' 
-        : `${thumbnails.length} out of 5 thumbnails generated successfully.`
-
-      toast({ 
-        title: 'Thumbnails Generated', 
-        description: successMessage
-      })
+      toast({ title: 'Thumbnail Generated', description: 'AI generated thumbnail successfully.' })
 
       const response: ThumbnailBatchResponse = {
-        thumbnails,
+        thumbnails: [result.image_url],
         video_id: videoId,
         success: true,
-        message: successMessage
+        message: 'Generated 1 thumbnail successfully.'
       }
-      
       return response
     } catch (error: any) {
       const errorMessage = mapAxiosError(
         isAxiosError(error) ? error : (error as any),
-        'Failed to generate thumbnails'
+        'Failed to generate thumbnail'
       )
       dispatch({ type: 'ERROR', payload: errorMessage })
-      toast({ title: 'Failed to generate thumbnails', description: errorMessage })
+      toast({ title: 'Failed to generate thumbnail', description: errorMessage })
       throw new Error(errorMessage)
     }
-  }, [getAuthHeaders, toast, generateSingleThumbnail])
+  }, [toast, generateSingleThumbnail])
 
   const regenerateThumbnails = useCallback(async (videoId: string): Promise<ThumbnailBatchResponse | undefined> => {
     // Use the same logic as generateThumbnails for regeneration
@@ -259,7 +199,7 @@ export default function useThumbnail() {
       return
     }
 
-  dispatch({ type: 'INIT_SINGLE' })
+    dispatch({ type: 'INIT_SINGLE' })
 
     try {
       const headers = getAuthHeaders()
@@ -302,11 +242,10 @@ export default function useThumbnail() {
         savedAt: res.data?.saved_at,
       })
 
-      // Add the uploaded thumbnail to the generated thumbnails list
+      // Set the uploaded thumbnail as the single generated thumbnail
       if (res.data?.thumbnail_path) {
         const thumbnailUrl = `${API_BASE_URL}/${res.data.thumbnail_path}`
-        // append to existing list preserving positions of batch-generated items
-        dispatch({ type: 'SUCCESS_BATCH', thumbnails: [...(state.generatedThumbnails || []), thumbnailUrl] })
+        dispatch({ type: 'SUCCESS_SINGLE', thumbnail: thumbnailUrl })
       }
 
       toast({ 
@@ -334,7 +273,6 @@ export default function useThumbnail() {
     isLoading: state.isLoading,
     error: state.error,
     generatedThumbnails: state.generatedThumbnails,
-    thumbnailLoadingStates: state.thumbnailLoadingStates,
     generateThumbnails,
     regenerateThumbnails,
     saveThumbnail,
