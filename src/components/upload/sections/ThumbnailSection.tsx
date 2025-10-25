@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { ImageIcon, RefreshCw, CheckCircle, Loader2 } from "lucide-react"
 import { UploadState, UploadHandlers } from "@/types/upload"
 import { useEffect, useState, useCallback, useRef } from "react"
+import { loadUploadDraft, saveUploadDraft } from "@/lib/storage/uploadDraft"
 // Single-thumbnail flow – no progress bar needed
 
 interface ThumbnailSectionProps {
@@ -97,6 +98,21 @@ export function ThumbnailSection({
     setImgLoading(thumbnailsLoading)
   }, [thumbnailsLoading])
 
+  // Hydrate previously saved thumbnail selection for this video
+  useEffect(() => {
+    const id = getCurrentVideoId()
+    if (!id) return
+    const draft = loadUploadDraft(id)
+    if (draft?.thumbnailUrl && draft.thumbnailUrl !== state.content.selectedThumbnail) {
+      updateState({
+        content: {
+          ...state.content,
+          selectedThumbnail: draft.thumbnailUrl,
+        }
+      })
+    }
+  }, [getCurrentVideoId])
+
   const handleImgLoad = useCallback(() => setImgLoading(false), [])
 
   const handleThumbnailSelect = useCallback((thumbnail: string) => {
@@ -141,6 +157,10 @@ export function ThumbnailSection({
       console.log('[ThumbnailSection] Saving thumbnail on Save & Next:', { videoId, thumbnail })
       const result = await saveThumbnail(videoId, thumbnail)
       console.log('[ThumbnailSection] Save & Next result:', result)
+      // Persist to localStorage draft so it restores when navigating back
+      try {
+        saveUploadDraft(videoId, { thumbnailUrl: thumbnail, step: 'preview' })
+      } catch {}
       updateState({ currentStep: "preview" })
     } catch (error) {
       console.error('[ThumbnailSection] Save & Next failed:', error)

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import axios from 'axios'
 import useAuth from '../auth/useAuth'
 import { useToast } from '../common/useToast'
+import { STORAGE_KEYS } from '@/lib/hooks/auth/authConstants'
 
 const API_BASE_URL = 'https://backend.postsiva.com'
 
@@ -67,8 +68,9 @@ export default function useGemini() {
         created_at: res.data?.created_at,
       })
 
-      // Also save to localStorage for immediate use
-      localStorage.setItem('gemini_api_key', apiKey)
+  // Also save to localStorage for immediate use
+  localStorage.setItem(STORAGE_KEYS.GEMINI_API_KEY, apiKey)
+  localStorage.setItem(STORAGE_KEYS.HAS_GEMINI_KEY, 'true')
       
       toast({ 
         title: 'API Key Saved', 
@@ -144,9 +146,9 @@ export default function useGemini() {
       // Save preview/presence to localStorage for immediate use (no raw key)
       if (res.data) {
         if (res.data.api_key_preview) {
-          localStorage.setItem('gemini_api_key_preview', String(res.data.api_key_preview))
+          localStorage.setItem(STORAGE_KEYS.GEMINI_API_KEY_PREVIEW, String(res.data.api_key_preview))
         }
-        localStorage.setItem('has_gemini_key', String(!!(res.data.api_key_preview || res.data.is_active)))
+        localStorage.setItem(STORAGE_KEYS.HAS_GEMINI_KEY, String(!!(res.data.api_key_preview || res.data.is_active)))
       }
       
       return res.data
@@ -220,8 +222,9 @@ export default function useGemini() {
         updated_at: res.data?.updated_at,
       })
 
-      // Also save to localStorage for immediate use
-      localStorage.setItem('gemini_api_key', apiKey)
+  // Also save to localStorage for immediate use
+  localStorage.setItem(STORAGE_KEYS.GEMINI_API_KEY, apiKey)
+  localStorage.setItem(STORAGE_KEYS.HAS_GEMINI_KEY, 'true')
       
       toast({ 
         title: 'API Key Updated', 
@@ -286,8 +289,10 @@ export default function useGemini() {
 
       const res = await axiosInstance.delete(url, { headers })
 
-      // Clear localStorage
-      localStorage.removeItem('gemini_api_key')
+  // Clear localStorage
+  localStorage.removeItem(STORAGE_KEYS.GEMINI_API_KEY)
+  localStorage.removeItem(STORAGE_KEYS.GEMINI_API_KEY_PREVIEW)
+  localStorage.setItem(STORAGE_KEYS.HAS_GEMINI_KEY, 'false')
 
       toast({ title: 'API Key Deleted', description: 'Gemini API key deleted successfully.' })
 

@@ -117,6 +117,11 @@ export default function UploadPage() {
     updateState({ isSavingTitle: true })
     try {
       const result = await saveTitle(videoId, title)
+      // Persist selection to localStorage draft
+      try {
+        const { saveUploadDraft } = await import('@/lib/storage/uploadDraft')
+        saveUploadDraft(videoId, { title })
+      } catch {}
       return result
     } finally {
       updateState({ isSavingTitle: false })
@@ -127,6 +132,11 @@ export default function UploadPage() {
     updateState({ isSavingDescription: true })
     try {
       const result = await saveDescription(videoId, description)
+      // Persist selection to localStorage draft
+      try {
+        const { saveUploadDraft } = await import('@/lib/storage/uploadDraft')
+        saveUploadDraft(videoId, { description })
+      } catch {}
       return result
     } finally {
       updateState({ isSavingDescription: false })
@@ -137,6 +147,11 @@ export default function UploadPage() {
     updateState({ isSavingTimestamps: true })
     try {
       const result = await saveTimestamps(videoId, timestamps)
+      // Persist selection to localStorage draft
+      try {
+        const { saveUploadDraft } = await import('@/lib/storage/uploadDraft')
+        saveUploadDraft(videoId, { timestamps })
+      } catch {}
       return result
     } finally {
       updateState({ isSavingTimestamps: false })

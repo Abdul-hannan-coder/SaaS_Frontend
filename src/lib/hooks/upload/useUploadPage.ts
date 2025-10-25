@@ -15,6 +15,7 @@ import usePlaylists from "@/lib/hooks/upload/usePlaylists"
 import useYouTubeUpload from "@/lib/hooks/youtube/useYouTubeUpload"
 import useVideoDownload from "@/lib/hooks/upload/useVideoDownload"
 import { UploadState, GeneratedContent, UploadStep } from "@/types/upload"
+import { loadUploadDraft } from "@/lib/storage/uploadDraft"
 
 export const useUploadPage = () => {
   const router = useRouter()
@@ -148,6 +149,24 @@ export const useUploadPage = () => {
       console.log('[UploadPage] Restored video data from localStorage')
     }
   }, [getCurrentVideoData])
+
+  // Hydrate saved selections (title, description, timestamps, thumbnail) from localStorage draft
+  useEffect(() => {
+    const id = getCurrentVideoId()
+    if (!id) return
+    const draft = loadUploadDraft(id)
+    if (!draft) return
+    setState(prev => ({
+      ...prev,
+      content: {
+        ...prev.content,
+        selectedTitle: draft.title ?? prev.content.selectedTitle,
+        description: draft.description ?? prev.content.description,
+        timestamps: draft.timestamps ?? prev.content.timestamps,
+        selectedThumbnail: draft.thumbnailUrl ?? prev.content.selectedThumbnail,
+      }
+    }))
+  }, [getCurrentVideoId])
 
   const updateState = (updates: Partial<UploadState>) => {
     setState(prev => {

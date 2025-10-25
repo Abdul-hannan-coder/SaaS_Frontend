@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Loader2, Upload, Sparkles, CheckCircle, ImageIcon, Save } from "lucide-react"
 import useVideos from "@/lib/hooks/upload/useVideos"
+import { STORAGE_KEYS } from "@/lib/hooks/auth/authConstants"
 import useAllInOne from "@/lib/hooks/upload/useAllInOne"
 import usePrivacyStatus from "@/lib/hooks/upload/usePrivacyStatus"
 import { useChannelPlaylists } from "@/lib/hooks/dashboard/playlists/useChannelPlaylists"
@@ -71,9 +72,12 @@ export default function AllInOnePage() {
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Check for Gemini API key
-    const geminiKey = localStorage.getItem('gemini_api_key')
-    if (!geminiKey || geminiKey.trim() === '') {
+    // Check for Gemini API key (align with stage-wise flow)
+    const hasKeyFlag = localStorage.getItem(STORAGE_KEYS.HAS_GEMINI_KEY) === 'true'
+    const keyPreview = localStorage.getItem(STORAGE_KEYS.GEMINI_API_KEY_PREVIEW)
+    const keyFull = localStorage.getItem(STORAGE_KEYS.GEMINI_API_KEY)
+    const hasGeminiKey = hasKeyFlag || !!(keyFull && keyFull.trim()) || !!(keyPreview && keyPreview.trim())
+    if (!hasGeminiKey) {
       toast({
         title: "Gemini API Key Required",
         description: "Please go to Settings and enter your Gemini API key before uploading videos.",

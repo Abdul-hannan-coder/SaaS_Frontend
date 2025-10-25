@@ -2,6 +2,7 @@
 
 import { useCallback } from "react"
 import { UploadState, UploadHandlers } from "@/types/upload"
+import { STORAGE_KEYS } from "@/lib/hooks/auth/authConstants"
 
 interface UseUploadHandlersProps {
   state: UploadState
@@ -57,8 +58,11 @@ export const useUploadHandlers = ({
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Check if Gemini API key exists before allowing upload
-    const hasGeminiKey = localStorage.getItem('has_gemini_key') === 'true'
+  // Check if Gemini API key exists before allowing upload (align with all-in-one)
+  const hasKeyFlag = localStorage.getItem(STORAGE_KEYS.HAS_GEMINI_KEY) === 'true'
+  const keyPreview = localStorage.getItem(STORAGE_KEYS.GEMINI_API_KEY_PREVIEW)
+  const keyFull = localStorage.getItem(STORAGE_KEYS.GEMINI_API_KEY)
+  const hasGeminiKey = hasKeyFlag || !!(keyFull && keyFull.trim()) || !!(keyPreview && keyPreview.trim())
     if (!hasGeminiKey) {
       toast({
         title: "Gemini API Key Required",
@@ -333,6 +337,11 @@ export const useUploadHandlers = ({
         selectedPlaylist: null,
         isUploading: false
       })
+      // Clear upload draft once fully uploaded
+      try {
+        const { clearUploadDraft } = await import('@/lib/storage/uploadDraft')
+        clearUploadDraft(videoId)
+      } catch {}
       
     } catch (error) {
       console.error('YouTube upload failed:', error)
