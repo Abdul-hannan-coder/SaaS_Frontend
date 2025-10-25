@@ -118,7 +118,21 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
     )
   }
 
+  // ✅ Added null check for analytics
   const playlist = playlistData.data.analytics
+  if (!playlist) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] text-center">
+        <h2 className="text-2xl font-bold text-destructive mb-2">No Analytics Available</h2>
+        <p className="text-muted-foreground mb-4">Analytics data is not available for this playlist yet.</p>
+        <Button onClick={() => refetch()}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh Data
+        </Button>
+      </div>
+    )
+  }
+
   const playlistName = (playlistData.data as any).playlist_name || (playlistData.data as any)?.playlist_info?.title || "Playlist"
   const playlistIdForLink = (playlistData.data as any).playlist_id || (playlistData.data as any)?.playlist_info?.playlist_id || playlistId
 
@@ -154,7 +168,7 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
             <CardDescription className="text-xs text-white/80">Playlist lifetime views</CardDescription>
           </CardHeader>
           <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
-            <div className="text-lg sm:text-3xl font-bold text-white">{asNumber(playlist.total_views).toLocaleString()}</div>
+            <div className="text-lg sm:text-3xl font-bold text-white">{asNumber(playlist?.total_views).toLocaleString()}</div>
           </CardContent>
         </Card>
 
@@ -164,7 +178,7 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
             <CardDescription className="text-xs text-white/80">All likes on videos</CardDescription>
           </CardHeader>
           <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
-            <div className="text-lg sm:text-3xl font-bold text-white">{asNumber(playlist.total_likes).toLocaleString()}</div>
+            <div className="text-lg sm:text-3xl font-bold text-white">{asNumber(playlist?.total_likes).toLocaleString()}</div>
           </CardContent>
         </Card>
 
@@ -174,7 +188,7 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
             <CardDescription className="text-xs text-white/80">Total comments</CardDescription>
           </CardHeader>
           <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
-            <div className="text-lg sm:text-3xl font-bold text-white">{asNumber(playlist.total_comments).toLocaleString()}</div>
+            <div className="text-lg sm:text-3xl font-bold text-white">{asNumber(playlist?.total_comments).toLocaleString()}</div>
           </CardContent>
         </Card>
 
@@ -184,7 +198,7 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
             <CardDescription className="text-xs text-white/80">Videos in playlist</CardDescription>
           </CardHeader>
           <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
-            <div className="text-lg sm:text-3xl font-bold text-white">{asNumber(playlist.total_videos)}</div>
+            <div className="text-lg sm:text-3xl font-bold text-white">{asNumber(playlist?.total_videos)}</div>
           </CardContent>
         </Card>
       </div>
@@ -198,10 +212,10 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
                     <div className="text-xs lg:text-sm text-white/80">Health Score</div>
                   </div>
             <div className={`text-lg lg:text-2xl font-bold text-white`}>
-              {asNumber(playlist.playlist_health?.health_score)}
+              {asNumber(playlist?.playlist_health?.health_score)}
                   </div>
                   <div className="text-xs text-white/80 mt-1">
-              {playlist.playlist_health?.health_level || "—"}
+              {playlist?.playlist_health?.health_level || "—"}
                   </div>
                 </CardContent>
               </Card>
@@ -213,7 +227,7 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
                     <div className="text-xs lg:text-sm text-white/80">Performance</div>
                   </div>
                   <div className="text-lg lg:text-2xl font-bold text-white">
-              {asNumber(playlist.performance_score).toLocaleString()}
+              {asNumber(playlist?.performance_score).toLocaleString()}
                   </div>
                   <div className="text-xs text-white/80 mt-1">Overall Score</div>
                 </CardContent>
@@ -226,7 +240,7 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
                     <div className="text-xs lg:text-sm text-white/80">Avg Duration</div>
                   </div>
                   <div className="text-lg lg:text-2xl font-bold text-white">
-              {asNumber(playlist.avg_duration_minutes).toFixed(2)}
+              {asNumber(playlist?.avg_duration_minutes).toFixed(2)}
                   </div>
                   <div className="text-xs text-white/80 mt-1">minutes per video</div>
                 </CardContent>
@@ -235,21 +249,21 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
               <Card>
                 <CardContent className="p-3 lg:p-4">
                   <div className="flex items-center gap-2 mb-2">
-              {growthIcon(playlist.growth_metrics?.growth_trend)}
+              {growthIcon(playlist?.growth_metrics?.growth_trend)}
                     <div className="text-xs lg:text-sm text-white/80">Consistency</div>
                   </div>
                   <div className="text-lg lg:text-2xl font-bold text-white">
-              {asNumber(playlist.growth_metrics?.consistency_score).toFixed(1)}%
+              {asNumber(playlist?.growth_metrics?.consistency_score).toFixed(1)}%
                   </div>
                   <div className="text-xs text-white/80 mt-1 truncate">
-              Growth: {playlist.growth_metrics?.growth_trend || "—"}
+              Growth: {playlist?.growth_metrics?.growth_trend || "—"}
                   </div>
                 </CardContent>
               </Card>
             </div>
 
       {/* Top Performing Videos */}
-      {playlist.top_performing_videos && (
+      {playlist?.top_performing_videos && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base lg:text-lg">Top Performing Videos</CardTitle>
@@ -257,13 +271,13 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {playlist.top_performing_videos.top_by_views && (
+              {playlist?.top_performing_videos?.top_by_views && (
                       <TopVideoCard
                         label="Top by Views"
                   data={playlist.top_performing_videos.top_by_views}
                       />
                     )}
-              {playlist.top_performing_videos.top_by_engagement && (
+              {playlist?.top_performing_videos?.top_by_engagement && (
                       <TopVideoCard
                         label="Top by Engagement"
                   data={playlist.top_performing_videos.top_by_engagement}
