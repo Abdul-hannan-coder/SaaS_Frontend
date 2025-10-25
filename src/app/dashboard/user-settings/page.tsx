@@ -1,28 +1,18 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/hooks/auth"
 import useGemini from "@/lib/hooks/ai/useGemini"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 export default function SettingsPage() {
-  const router = useRouter()
-  const { isAuthenticated, isLoading: authLoading } = useAuth()
   const { isLoading, error, saveGeminiKey, getGeminiKey, updateGeminiKey, deleteGeminiKey } = useGemini()
 
   const [apiKey, setApiKey] = useState("")
   const [apiKeyPreview, setApiKeyPreview] = useState("")
   const [hasKey, setHasKey] = useState(false)
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/auth/login")
-      return
-    }
-  }, [isAuthenticated, authLoading, router])
+  const [initializing, setInitializing] = useState(true)
 
   useEffect(() => {
     const load = async () => {
@@ -36,6 +26,9 @@ export default function SettingsPage() {
           setApiKeyPreview(res.api_key_preview)
         }
       } catch {}
+      finally {
+        setInitializing(false)
+      }
     }
     load()
   }, [getGeminiKey])
@@ -49,6 +42,9 @@ export default function SettingsPage() {
           <CardTitle>Gemini API Key</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {initializing && (
+            <div className="text-sm text-muted-foreground">Loading your settings...</div>
+          )}
           {hasKey && (
             <div className="space-y-2">
               <div className="text-sm text-muted-foreground">Current key (preview):</div>
