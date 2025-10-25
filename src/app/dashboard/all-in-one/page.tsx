@@ -41,32 +41,33 @@ export default function AllInOnePage() {
   // UI state
   const [step, setStep] = useState<"upload" | "processing" | "review">("upload")
 
+  // Fetch playlists only once on mount, not on every render
   useEffect(() => {
     fetchChannelPlaylists()
-  }, [fetchChannelPlaylists])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load processed data into form
   useEffect(() => {
-    if (processedData?.results) {
-      const { titles, description: desc, timestamps: ts, thumbnails } = processedData.results
-      
-      if (titles.success && titles.generated_titles.length > 0) {
-        setSelectedTitle(titles.generated_titles[0])
-      }
-      
-      if (desc.success && desc.generated_description) {
-        setDescription(desc.generated_description)
-      }
-      
-      if (ts.success && ts.generated_timestamps) {
-        setTimestamps(ts.generated_timestamps)
-      }
-      
-      if (thumbnails.success && thumbnails.generated_thumbnails.length > 0) {
-        setSelectedThumbnail(thumbnails.generated_thumbnails[0].image_url)
-      }
+    if (!processedData?.results) return // Guard against running on every render
+    
+    const { titles, description: desc, timestamps: ts, thumbnails } = processedData.results
+    
+    if (titles.success && titles.generated_titles.length > 0) {
+      setSelectedTitle(titles.generated_titles[0])
     }
-  }, [processedData])
+    
+    if (desc.success && desc.generated_description) {
+      setDescription(desc.generated_description)
+    }
+    
+    if (ts.success && ts.generated_timestamps) {
+      setTimestamps(ts.generated_timestamps)
+    }
+    
+    if (thumbnails.success && thumbnails.generated_thumbnails.length > 0) {
+      setSelectedThumbnail(thumbnails.generated_thumbnails[0].image_url)
+    }
+  }, [processedData]) // This is safe because processedData is from reducer state
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]

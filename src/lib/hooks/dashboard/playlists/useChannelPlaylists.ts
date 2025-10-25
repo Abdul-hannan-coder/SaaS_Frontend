@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useReducer } from "react"
+import { useEffect, useReducer, useCallback } from "react"
 import { API_BASE_URL } from '@/lib/config/appConfig'
 import {
   channelPlaylistsReducer,
@@ -27,7 +27,7 @@ interface PlaylistsApiResponse {
 export function useChannelPlaylists() {
   const [state, dispatch] = useReducer(channelPlaylistsReducer, initialChannelPlaylistsState)
 
-  const fetchChannelPlaylists = async () => {
+  const fetchChannelPlaylists = useCallback(async () => {
     try {
       dispatch({ type: 'INIT' })
       
@@ -62,11 +62,11 @@ export function useChannelPlaylists() {
     } finally {
       // handled by reducer
     }
-  }
+  }, []) // Empty deps - token is read from localStorage each time
 
   useEffect(() => {
     fetchChannelPlaylists()
-  }, [])
+  }, [fetchChannelPlaylists])
 
   return {
     playlists: state.playlists,
