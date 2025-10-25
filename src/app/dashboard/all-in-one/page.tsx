@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Progress } from "@/components/ui/progress"
 import { Loader2, Upload, Sparkles, CheckCircle, ImageIcon, Save } from "lucide-react"
 import useVideos from "@/lib/hooks/upload/useVideos"
 import { STORAGE_KEYS } from "@/lib/hooks/auth/authConstants"
@@ -181,6 +182,7 @@ export default function AllInOnePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {/* Upload Area */}
               <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
                 <Input
                   type="file"
@@ -191,40 +193,42 @@ export default function AllInOnePage() {
                   ref={fileInputRef}
                   disabled={isUploading}
                 />
-                <div className="flex flex-col items-center gap-4">
-                  <Button
-                    type="button"
-                    variant="crypto"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                  >
-                    <Upload className="h-4 w-4 mr-2" /> Upload File
-                  </Button>
-                  {isUploading ? (
-                    <>
-                      <Loader2 className="h-12 w-12 animate-spin text-brand-primary" />
-                      <div className="space-y-2">
-                        <p className="text-lg font-medium">Uploading... {Math.round(progress)}%</p>
-                        <div className="w-64 h-2 bg-secondary rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-brand-primary transition-all duration-300"
-                            style={{ width: `${Math.round(progress)}%` }}
-                          />
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-12 w-12 text-muted-foreground" />
-                      <div className="space-y-1">
+                
+                {!isUploading ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <Upload className="h-12 w-12 text-muted-foreground" />
+                    <div className="space-y-1">
+                      <Label htmlFor="video-upload" className="cursor-pointer">
                         <p className="text-lg font-medium">Click to upload or drag and drop</p>
-                        <p className="text-sm text-muted-foreground">MP4, MOV, AVI, or any video format</p>
+                      </Label>
+                      <p className="text-sm text-muted-foreground">MP4, MOV, AVI, or any video format</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="crypto"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                    >
+                      <Upload className="h-4 w-4 mr-2" /> Select Video File
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="h-12 w-12 animate-spin text-brand-primary" />
+                    <div className="w-full max-w-md space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="truncate mr-2">
+                          {uploadedFile?.name ? `Uploading ${uploadedFile.name}` : 'Uploading video...'}
+                        </span>
+                        <span className="flex-shrink-0 font-medium">{Math.round(progress)}%</span>
                       </div>
-                    </>
-                  )}
-                </div>
+                      <Progress value={progress} className="h-2" />
+                    </div>
+                  </div>
+                )}
               </div>
-              {uploadedFile && (
+              
+              {uploadedFile && !isUploading && (
                 <p className="text-sm text-muted-foreground">
                   Selected: {uploadedFile.name}
                 </p>

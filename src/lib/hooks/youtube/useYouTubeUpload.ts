@@ -16,6 +16,11 @@ interface YouTubeUploadState {
   lastResponse: YouTubeUploadResponse | null
 }
 
+interface YouTubeUploadParams {
+  privacy_status?: 'public' | 'private' | 'unlisted'
+  playlist_id?: string
+}
+
 export default function useYouTubeUpload() {
   const { getAuthHeaders } = useAuth()
   const [state, setState] = useState<YouTubeUploadState>({
@@ -24,7 +29,7 @@ export default function useYouTubeUpload() {
     lastResponse: null,
   })
 
-  const uploadToYouTube = useCallback(async (videoId: string) => {
+  const uploadToYouTube = useCallback(async (videoId: string, params?: YouTubeUploadParams) => {
     try {
       setState(prev => ({ ...prev, isUploading: true, error: null }))
       
@@ -33,11 +38,11 @@ export default function useYouTubeUpload() {
         throw new Error('Authentication required')
       }
 
-      console.log(`[YouTube Upload] Uploading video ${videoId} to YouTube...`)
+      console.log(`[YouTube Upload] Uploading video ${videoId} to YouTube...`, params)
       
       const response = await axios.post(
         `https://backend.postsiva.com/youtube-upload/${videoId}/upload`,
-        {}, // Empty body as per the curl example
+        params || {}, // Include privacy and playlist params
         { headers }
       )
 

@@ -325,11 +325,24 @@ export const useUploadHandlers = ({
         description: "Please wait while we upload your video. This may take a few minutes.",
       })
 
-      await uploadToYouTube(videoId)
+      // Pass privacy and playlist to YouTube upload API
+      const uploadParams: { privacy_status?: 'public' | 'private' | 'unlisted', playlist_id?: string } = {}
+      
+      if (state.selectedPrivacy) {
+        uploadParams.privacy_status = state.selectedPrivacy
+        console.log('[Upload] Setting privacy status:', state.selectedPrivacy)
+      }
+      
+      if (state.selectedPlaylist?.id) {
+        uploadParams.playlist_id = state.selectedPlaylist.id
+        console.log('[Upload] Setting playlist:', state.selectedPlaylist.name, state.selectedPlaylist.id)
+      }
+
+      await uploadToYouTube(videoId, uploadParams)
 
       toast({
         title: "Success!",
-        description: `Video uploaded to YouTube successfully!`,
+        description: `Video uploaded to YouTube successfully as ${state.selectedPrivacy}!`,
       })
 
       // Reset states
@@ -355,7 +368,7 @@ export const useUploadHandlers = ({
         variant: "destructive",
       })
     }
-  }, [previewData, uploadedVideoData, getCurrentVideoId, resetYouTubeUploadState, uploadToYouTube, updateState, toast, uploadError])
+  }, [previewData, uploadedVideoData, getCurrentVideoId, resetYouTubeUploadState, uploadToYouTube, updateState, toast, uploadError, state.selectedPrivacy, state.selectedPlaylist])
 
   const handlePublish = useCallback(async (type: "public" | "private" | "unlisted" | "schedule") => {
     updateState({ publishType: type })
