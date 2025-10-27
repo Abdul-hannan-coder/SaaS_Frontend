@@ -160,7 +160,6 @@ export default function PlaylistVideosPage() {
 
   const { playlistData, isLoading, error, refetch: refetchAnalytics } = usePlaylistAnalytics(playlistId)
   const { playlistData: playlistVideos, isLoading: isVideosLoading, error: videosError, refetch: refetchVideos } = usePlaylistVideos(playlistId)
-
   // Build a quick lookup map for details by video_id (to enrich analytics items)
   const detailsById = useMemo(() => {
     const m: Record<string, any> = {}

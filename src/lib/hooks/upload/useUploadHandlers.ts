@@ -561,6 +561,57 @@ export const useUploadHandlers = ({
       if (getVideoPreview) {
         await getVideoPreview(videoId)
       }
+
+      // After All-In-One processing, automatically trigger the YouTube upload
+      // This calls: POST /youtube-upload/{videoId}/upload on the backend
+      try {
+        console.log('[AllInOne][Handlers] Initiating YouTube upload for videoId:', videoId)
+        updateState({ isUploading: true })
+        toast({ title: 'Uploading to YouTube...', description: 'All-in-one finished. Uploading to YouTube now.' })
+        resetYouTubeUploadState()
+
+        try {
+          await uploadToYouTube(videoId)
+          toast({ title: 'Success!', description: 'Video uploaded to YouTube successfully.' })
+        } catch (uploadErr: any) {
+          console.error('[AllInOne][Handlers] ⚠️ YouTube upload encountered an error:', uploadErr)
+          const errorData = uploadErr?.response?.data
+          const isThumbnailError = errorData?.code === 'UPLOAD_005' ||
+                                   errorData?.details?.error_type === 'thumbnail_upload_failure' ||
+                                   errorData?.message?.includes('thumbnail')
+
+          if (isThumbnailError && errorData?.details?.youtube_video_id) {
+            console.log('[AllInOne][Handlers] ℹ️ Video uploaded but thumbnail failed:', {
+              youtubeVideoId: errorData.details.youtube_video_id,
+              error: errorData.message
+            })
+            toast({
+              title: 'Video Uploaded (Thumbnail Warning)',
+              description: 'Video uploaded, but custom thumbnail could not be set. You may need to verify your YouTube account or set it manually.',
+              variant: 'default',
+            })
+          } else {
+            // If it's not a thumbnail-only issue, rethrow so outer catch handles it
+            throw uploadErr
+          }
+        }
+
+        // Reset states after successful (or partial) upload
+        updateState({ selectedPlaylist: null, isUploading: false })
+
+        // Clear upload draft
+        try {
+          const { clearUploadDraft } = await import('@/lib/storage/uploadDraft')
+          clearUploadDraft(videoId)
+        } catch {}
+
+        // Navigate to dashboard after a short delay so user sees toasts
+        setTimeout(() => router.push('/dashboard'), 1500)
+      } catch (e) {
+        console.error('[AllInOne][Handlers] YouTube upload failed after All-in-one:', e)
+        updateState({ isUploading: false })
+        toast({ title: 'Upload Failed', description: 'Failed to upload video to YouTube after processing.', variant: 'destructive' })
+      }
     } catch (e) {
       console.error('All-in-one failed', e)
     }
