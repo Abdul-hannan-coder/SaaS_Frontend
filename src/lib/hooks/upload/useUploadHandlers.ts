@@ -328,15 +328,31 @@ export const useUploadHandlers = ({
       // Pass privacy and playlist to YouTube upload API
       const uploadParams: { privacy_status?: 'public' | 'private' | 'unlisted', playlist_id?: string } = {}
       
+      console.log('[UploadHandlers] Preparing YouTube upload parameters:', {
+        videoId,
+        currentPrivacy: state.selectedPrivacy,
+        currentPlaylist: state.selectedPlaylist,
+        timestamp: new Date().toISOString()
+      })
+      
       if (state.selectedPrivacy) {
         uploadParams.privacy_status = state.selectedPrivacy
-        console.log('[Upload] Setting privacy status:', state.selectedPrivacy)
+        console.log('[UploadHandlers] ✅ Privacy status added to upload params:', state.selectedPrivacy)
+      } else {
+        console.warn('[UploadHandlers] ⚠️ No privacy status selected, will use API default')
       }
       
       if (state.selectedPlaylist?.id) {
         uploadParams.playlist_id = state.selectedPlaylist.id
-        console.log('[Upload] Setting playlist:', state.selectedPlaylist.name, state.selectedPlaylist.id)
+        console.log('[UploadHandlers] ✅ Playlist added to upload params:', {
+          name: state.selectedPlaylist.name,
+          id: state.selectedPlaylist.id
+        })
+      } else {
+        console.log('[UploadHandlers] ℹ️ No playlist selected (optional)')
       }
+
+      console.log('[UploadHandlers] Final upload params being sent to API:', uploadParams)
 
       await uploadToYouTube(videoId, uploadParams)
 
@@ -371,6 +387,13 @@ export const useUploadHandlers = ({
   }, [previewData, uploadedVideoData, getCurrentVideoId, resetYouTubeUploadState, uploadToYouTube, updateState, toast, uploadError, state.selectedPrivacy, state.selectedPlaylist])
 
   const handlePublish = useCallback(async (type: "public" | "private" | "unlisted" | "schedule") => {
+    console.log('[UploadHandlers] handlePublish called:', {
+      type,
+      currentSelectedPrivacy: state.selectedPrivacy,
+      currentSelectedPlaylist: state.selectedPlaylist,
+      timestamp: new Date().toISOString()
+    })
+    
     updateState({ publishType: type })
     
     if (type === "schedule") {
@@ -390,8 +413,15 @@ export const useUploadHandlers = ({
           return
         }
 
+        console.log('[UploadHandlers] Updating privacy status before upload:', {
+          videoId,
+          privacyType: type
+        })
+
         resetPrivacyState()
         await updatePrivacyStatus(videoId, type)
+
+        console.log('[UploadHandlers] Privacy status updated, proceeding to direct upload')
 
         toast({
           title: "Success",
@@ -401,7 +431,7 @@ export const useUploadHandlers = ({
         // Direct upload with confirmation instead of showing modal
         handleDirectUpload()
       } catch (error) {
-        console.error('Privacy status update failed:', error)
+        console.error('[UploadHandlers] Privacy status update failed:', error)
         toast({
           title: "Error",
           description: privacyError || `Failed to set video privacy to ${type}`,
@@ -409,7 +439,7 @@ export const useUploadHandlers = ({
         })
       }
     }
-  }, [previewData, uploadedVideoData, getCurrentVideoId, updatePrivacyStatus, resetPrivacyState, updateState, toast, privacyError, handleDirectUpload])
+  }, [previewData, uploadedVideoData, getCurrentVideoId, updatePrivacyStatus, resetPrivacyState, updateState, toast, privacyError, handleDirectUpload, state.selectedPrivacy, state.selectedPlaylist])
 
   const handlePlaylistSelection = useCallback((playlistId: string) => {
     setTimeout(() => {

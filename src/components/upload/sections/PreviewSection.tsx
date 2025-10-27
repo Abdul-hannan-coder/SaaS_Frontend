@@ -51,10 +51,21 @@ export function PreviewSection({
   ]
 
   const handlePrivacySelect = (privacy: 'public' | 'private' | 'unlisted') => {
+    console.log('[PreviewSection] Privacy selected:', {
+      selectedPrivacy: privacy,
+      previousPrivacy: state.selectedPrivacy,
+      timestamp: new Date().toISOString()
+    })
     updateState({ selectedPrivacy: privacy })
   }
 
   const handlePlaylistSelect = (playlist: any) => {
+    console.log('[PreviewSection] Playlist selected:', {
+      playlistId: playlist.id,
+      playlistName: playlist.name,
+      previousPlaylist: state.selectedPlaylist,
+      timestamp: new Date().toISOString()
+    })
     updateState({ selectedPlaylist: playlist })
   }
 

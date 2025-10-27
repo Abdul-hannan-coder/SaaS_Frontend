@@ -38,7 +38,13 @@ export default function useYouTubeUpload() {
         throw new Error('Authentication required')
       }
 
-      console.log(`[YouTube Upload] Uploading video ${videoId} to YouTube...`, params)
+      console.log('[YouTube Upload] Starting upload with parameters:', {
+        videoId,
+        params,
+        hasPrivacy: !!params?.privacy_status,
+        hasPlaylist: !!params?.playlist_id,
+        timestamp: new Date().toISOString()
+      })
       
       const response = await axios.post(
         `https://backend.postsiva.com/youtube-upload/${videoId}/upload`,
@@ -47,7 +53,12 @@ export default function useYouTubeUpload() {
       )
 
       const responseData = response.data
-      console.log('[YouTube Upload] Success:', responseData)
+      console.log('[YouTube Upload] Success:', {
+        success: responseData.success,
+        message: responseData.message,
+        videoId,
+        sentParams: params
+      })
 
       setState(prev => ({
         ...prev,
