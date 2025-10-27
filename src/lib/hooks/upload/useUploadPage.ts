@@ -11,6 +11,7 @@ import useTimestamps from "@/lib/hooks/upload/useTimestamps"
 import useThumbnail from "@/lib/hooks/upload/useThumbnail"
 import useVideoPreview from "@/lib/hooks/upload/useVideoPreview"
 import usePrivacyStatus from "@/lib/hooks/upload/usePrivacyStatus"
+import usePlaylistSelection from "@/lib/hooks/upload/usePlaylistSelection"
 import usePlaylists from "@/lib/hooks/upload/usePlaylists"
 import useYouTubeUpload from "@/lib/hooks/youtube/useYouTubeUpload"
 import useVideoDownload from "@/lib/hooks/upload/useVideoDownload"
@@ -81,6 +82,12 @@ export const useUploadPage = () => {
     updatePrivacyStatus,
     resetState: resetPrivacyState,
   } = usePrivacyStatus()
+  const {
+    isSelecting: playlistSelecting,
+    error: playlistSelectionError,
+    selectPlaylist,
+    resetState: resetPlaylistSelectionState,
+  } = usePlaylistSelection()
   const {
     playlists,
     isLoading: playlistsLoading,
@@ -211,6 +218,8 @@ export const useUploadPage = () => {
     previewError,
     privacyUpdating,
     privacyError,
+    playlistSelecting,
+    playlistSelectionError,
     playlists,
     playlistsLoading,
     playlistsError,
@@ -235,6 +244,8 @@ export const useUploadPage = () => {
     getVideoPreview,
     updatePrivacyStatus,
     resetPrivacyState,
+    selectPlaylist,
+    resetPlaylistSelectionState,
     fetchPlaylists,
     uploadToYouTube,
     resetYouTubeUploadState,

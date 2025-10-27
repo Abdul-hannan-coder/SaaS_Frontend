@@ -18,6 +18,8 @@ interface UseUploadHandlersProps {
   generateThumbnailsAPI: any
   updatePrivacyStatus: any
   resetPrivacyState: any
+  selectPlaylist: any
+  resetPlaylistSelectionState: any
   uploadToYouTube: any
   resetYouTubeUploadState: any
   getCurrentVideoId: any
@@ -25,6 +27,7 @@ interface UseUploadHandlersProps {
   previewData: any
   uploadedVideoData: any
   privacyError: string | null
+  playlistSelectionError: string | null
   uploadError: string | null
   processAllInOne?: (videoId: string) => Promise<any>
 }
@@ -43,6 +46,8 @@ export const useUploadHandlers = ({
   generateThumbnailsAPI,
   updatePrivacyStatus,
   resetPrivacyState,
+  selectPlaylist,
+  resetPlaylistSelectionState,
   uploadToYouTube,
   resetYouTubeUploadState,
   getCurrentVideoId,
@@ -50,6 +55,7 @@ export const useUploadHandlers = ({
   previewData,
   uploadedVideoData,
   privacyError,
+  playlistSelectionError,
   uploadError,
   processAllInOne,
 }: UseUploadHandlersProps): UploadHandlers => {
@@ -315,46 +321,66 @@ export const useUploadHandlers = ({
         return
       }
 
-      resetYouTubeUploadState()
+      console.log('[UploadHandlers] Starting YouTube upload process:', {
+        videoId,
+        selectedPrivacy: state.selectedPrivacy,
+        selectedPlaylist: state.selectedPlaylist,
+        timestamp: new Date().toISOString()
+      })
 
       // Set the main upload state to loading
       updateState({ isUploading: true })
 
       toast({
+        title: "Preparing upload...",
+        description: "Setting up privacy and playlist before uploading to YouTube.",
+      })
+
+      // Step 1: Update privacy status (already done in handlePublish, but ensure it's the selected one from Stage 2)
+      if (state.selectedPrivacy) {
+        console.log('[UploadHandlers] Using privacy setting from Stage 2:', state.selectedPrivacy)
+        try {
+          resetPrivacyState()
+          await updatePrivacyStatus(videoId, state.selectedPrivacy)
+          console.log('[UploadHandlers] ✅ Privacy status updated successfully')
+        } catch (error) {
+          console.error('[UploadHandlers] ❌ Privacy status update failed:', error)
+          throw new Error(`Failed to set privacy to ${state.selectedPrivacy}: ${privacyError || 'Unknown error'}`)
+        }
+      }
+
+      // Step 2: Add to playlist if selected
+      if (state.selectedPlaylist?.id) {
+        console.log('[UploadHandlers] Adding video to playlist:', {
+          playlistName: state.selectedPlaylist.name,
+          playlistId: state.selectedPlaylist.id
+        })
+        try {
+          resetPlaylistSelectionState()
+          await selectPlaylist(videoId, state.selectedPlaylist.id)
+          console.log('[UploadHandlers] ✅ Video added to playlist successfully')
+        } catch (error) {
+          console.error('[UploadHandlers] ❌ Playlist selection failed:', error)
+          // Don't fail the entire upload if playlist fails, just warn
+          toast({
+            title: "Playlist Warning",
+            description: `Failed to add video to playlist: ${playlistSelectionError || 'Unknown error'}`,
+            variant: "default",
+          })
+        }
+      } else {
+        console.log('[UploadHandlers] ℹ️ No playlist selected, skipping playlist step')
+      }
+
+      // Step 3: Upload to YouTube (no params needed - privacy and playlist already set)
+      toast({
         title: "Uploading to YouTube...",
         description: "Please wait while we upload your video. This may take a few minutes.",
       })
 
-      // Pass privacy and playlist to YouTube upload API
-      const uploadParams: { privacy_status?: 'public' | 'private' | 'unlisted', playlist_id?: string } = {}
-      
-      console.log('[UploadHandlers] Preparing YouTube upload parameters:', {
-        videoId,
-        currentPrivacy: state.selectedPrivacy,
-        currentPlaylist: state.selectedPlaylist,
-        timestamp: new Date().toISOString()
-      })
-      
-      if (state.selectedPrivacy) {
-        uploadParams.privacy_status = state.selectedPrivacy
-        console.log('[UploadHandlers] ✅ Privacy status added to upload params:', state.selectedPrivacy)
-      } else {
-        console.warn('[UploadHandlers] ⚠️ No privacy status selected, will use API default')
-      }
-      
-      if (state.selectedPlaylist?.id) {
-        uploadParams.playlist_id = state.selectedPlaylist.id
-        console.log('[UploadHandlers] ✅ Playlist added to upload params:', {
-          name: state.selectedPlaylist.name,
-          id: state.selectedPlaylist.id
-        })
-      } else {
-        console.log('[UploadHandlers] ℹ️ No playlist selected (optional)')
-      }
-
-      console.log('[UploadHandlers] Final upload params being sent to API:', uploadParams)
-
-      await uploadToYouTube(videoId, uploadParams)
+      console.log('[UploadHandlers] Calling YouTube upload API for videoId:', videoId)
+      resetYouTubeUploadState()
+      await uploadToYouTube(videoId)
 
       toast({
         title: "Success!",
@@ -366,6 +392,7 @@ export const useUploadHandlers = ({
         selectedPlaylist: null,
         isUploading: false
       })
+      
       // Clear upload draft once fully uploaded
       try {
         const { clearUploadDraft } = await import('@/lib/storage/uploadDraft')
@@ -373,18 +400,18 @@ export const useUploadHandlers = ({
       } catch {}
       
     } catch (error) {
-      console.error('YouTube upload failed:', error)
+      console.error('[UploadHandlers] YouTube upload failed:', error)
       
       // Reset loading state on error
       updateState({ isUploading: false })
       
       toast({
         title: "Upload Failed",
-        description: uploadError || "Failed to upload video to YouTube",
+        description: uploadError || (error as Error).message || "Failed to upload video to YouTube",
         variant: "destructive",
       })
     }
-  }, [previewData, uploadedVideoData, getCurrentVideoId, resetYouTubeUploadState, uploadToYouTube, updateState, toast, uploadError, state.selectedPrivacy, state.selectedPlaylist])
+  }, [previewData, uploadedVideoData, getCurrentVideoId, resetYouTubeUploadState, uploadToYouTube, resetPrivacyState, updatePrivacyStatus, resetPlaylistSelectionState, selectPlaylist, updateState, toast, uploadError, privacyError, playlistSelectionError, state.selectedPrivacy, state.selectedPlaylist])
 
   const handlePublish = useCallback(async (type: "public" | "private" | "unlisted" | "schedule") => {
     console.log('[UploadHandlers] handlePublish called:', {
@@ -401,45 +428,14 @@ export const useUploadHandlers = ({
       return
     }
 
-    if (type === "public" || type === "private" || type === "unlisted") {
-      try {
-        const videoId = previewData?.id || uploadedVideoData?.id || getCurrentVideoId()
-        if (!videoId) {
-          toast({
-            title: "Error",
-            description: "No video ID found. Please try uploading again.",
-            variant: "destructive",
-          })
-          return
-        }
+    // Important: Use the privacy selected in Stage 2 (state.selectedPrivacy), not the 'type' parameter
+    // The 'type' parameter is legacy and will be ignored
+    console.log('[UploadHandlers] ℹ️ Using privacy from Stage 2:', state.selectedPrivacy)
+    console.log('[UploadHandlers] ℹ️ Ignoring type parameter:', type)
 
-        console.log('[UploadHandlers] Updating privacy status before upload:', {
-          videoId,
-          privacyType: type
-        })
-
-        resetPrivacyState()
-        await updatePrivacyStatus(videoId, type)
-
-        console.log('[UploadHandlers] Privacy status updated, proceeding to direct upload')
-
-        toast({
-          title: "Success",
-          description: `Video privacy set to ${type}`,
-        })
-
-        // Direct upload with confirmation instead of showing modal
-        handleDirectUpload()
-      } catch (error) {
-        console.error('[UploadHandlers] Privacy status update failed:', error)
-        toast({
-          title: "Error",
-          description: privacyError || `Failed to set video privacy to ${type}`,
-          variant: "destructive",
-        })
-      }
-    }
-  }, [previewData, uploadedVideoData, getCurrentVideoId, updatePrivacyStatus, resetPrivacyState, updateState, toast, privacyError, handleDirectUpload, state.selectedPrivacy, state.selectedPlaylist])
+    // Direct upload with confirmation - privacy and playlist will be set inside handleDirectUpload
+    handleDirectUpload()
+  }, [state.selectedPrivacy, state.selectedPlaylist, updateState, handleDirectUpload])
 
   const handlePlaylistSelection = useCallback((playlistId: string) => {
     setTimeout(() => {

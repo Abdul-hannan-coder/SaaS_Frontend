@@ -207,18 +207,12 @@ export function ThumbnailSection({
           )}
         </Button>
 
-        {(state.content.thumbnails.length > 0 || generatedThumbnails.length > 0 || thumbnailsLoading) && (
+        {(state.content.thumbnails.length > 0 || generatedThumbnails.length > 0) && (
           <div className="space-y-4">
             <Label className="crypto-text-primary flex items-center gap-2">Thumbnail:</Label>
 
             <div className="grid grid-cols-1 gap-2">
-              {thumbnailsLoading && (
-                <div className="relative aspect-video border-2 rounded-lg border-primary/30 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                </div>
-              )}
-
-              {!thumbnailsLoading && (state.content.thumbnails[0] || generatedThumbnails[0]) && (
+              {(state.content.thumbnails[0] || generatedThumbnails[0]) && (
                 <OptimizedThumbnail
                   key={`thumb-0-${state.content.thumbnails[0] || generatedThumbnails[0]}`}
                   src={state.content.thumbnails[0] || generatedThumbnails[0]}
@@ -263,28 +257,20 @@ export function ThumbnailSection({
         </div>
 
         {state.content.selectedThumbnail && (
-          <div className="space-y-2">
-            {isSaving && (
-              <div className="text-sm text-blue-600 flex items-center gap-1">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Saving thumbnail...
-              </div>
+          <Button 
+            onClick={handleSaveAndNext}
+            disabled={isSaving}
+            className="w-full crypto-button-primary"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save & Next: Preview"
             )}
-            <Button 
-              onClick={handleSaveAndNext}
-              disabled={isSaving}
-              className="w-full crypto-button-primary"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Save & Next: Preview"
-              )}
-            </Button>
-          </div>
+          </Button>
         )}
       </CardContent>
     </Card>
