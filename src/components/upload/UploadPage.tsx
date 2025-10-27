@@ -76,6 +76,7 @@ export default function UploadPage() {
     state,
     updateState,
     toast,
+    router,
     uploadVideo,
     resetUploadState,
     downloadVideo,

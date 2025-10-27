@@ -8,6 +8,7 @@ interface UseUploadHandlersProps {
   state: UploadState
   updateState: (updates: Partial<UploadState>) => void
   toast: any
+  router: any
   uploadVideo: any
   resetUploadState: any
   downloadVideo: any
@@ -36,6 +37,7 @@ export const useUploadHandlers = ({
   state,
   updateState,
   toast,
+  router,
   uploadVideo,
   resetUploadState,
   downloadVideo,
@@ -336,17 +338,25 @@ export const useUploadHandlers = ({
         description: "Setting up privacy and playlist before uploading to YouTube.",
       })
 
-      // Step 1: Update privacy status (already done in handlePublish, but ensure it's the selected one from Stage 2)
+      // Step 1: Update privacy status
       if (state.selectedPrivacy) {
-        console.log('[UploadHandlers] Using privacy setting from Stage 2:', state.selectedPrivacy)
+        console.log('[UploadHandlers] Setting privacy to:', state.selectedPrivacy)
         try {
           resetPrivacyState()
           await updatePrivacyStatus(videoId, state.selectedPrivacy)
           console.log('[UploadHandlers] ✅ Privacy status updated successfully')
         } catch (error) {
-          console.error('[UploadHandlers] ❌ Privacy status update failed:', error)
-          throw new Error(`Failed to set privacy to ${state.selectedPrivacy}: ${privacyError || 'Unknown error'}`)
+          console.error('[UploadHandlers] ⚠️ Privacy status update failed:', error)
+          // Don't throw - privacy might already be set from a previous attempt
+          // Just show a warning toast
+          toast({
+            title: "Privacy Warning",
+            description: `Could not update privacy to ${state.selectedPrivacy}. Will use existing setting.`,
+            variant: "default",
+          })
         }
+      } else {
+        console.log('[UploadHandlers] ℹ️ No privacy selected, using default')
       }
 
       // Step 2: Add to playlist if selected
@@ -398,20 +408,43 @@ export const useUploadHandlers = ({
         const { clearUploadDraft } = await import('@/lib/storage/uploadDraft')
         clearUploadDraft(videoId)
       } catch {}
+
+      // Navigate to dashboard after successful upload
+      console.log('[UploadHandlers] ✅ Upload complete, navigating to dashboard')
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 1500) // 1.5 second delay to let user see success message
       
     } catch (error) {
-      console.error('[UploadHandlers] YouTube upload failed:', error)
+      console.error('[UploadHandlers] ❌ Upload process failed:', error)
+      console.error('[UploadHandlers] Error details:', {
+        errorMessage: (error as Error)?.message,
+        errorStack: (error as Error)?.stack,
+        uploadError,
+        privacyError,
+        playlistSelectionError,
+      })
       
       // Reset loading state on error
       updateState({ isUploading: false })
       
+      // Determine which step failed
+      let errorDescription = "Failed to upload video to YouTube"
+      if ((error as Error)?.message?.includes('privacy')) {
+        errorDescription = `Privacy setup failed: ${privacyError || (error as Error).message}`
+      } else if ((error as Error)?.message?.includes('playlist')) {
+        errorDescription = `Playlist setup failed: ${playlistSelectionError || (error as Error).message}`
+      } else {
+        errorDescription = uploadError || (error as Error).message || "Failed to upload video to YouTube"
+      }
+      
       toast({
         title: "Upload Failed",
-        description: uploadError || (error as Error).message || "Failed to upload video to YouTube",
+        description: errorDescription,
         variant: "destructive",
       })
     }
-  }, [previewData, uploadedVideoData, getCurrentVideoId, resetYouTubeUploadState, uploadToYouTube, resetPrivacyState, updatePrivacyStatus, resetPlaylistSelectionState, selectPlaylist, updateState, toast, uploadError, privacyError, playlistSelectionError, state.selectedPrivacy, state.selectedPlaylist])
+  }, [previewData, uploadedVideoData, getCurrentVideoId, resetYouTubeUploadState, uploadToYouTube, resetPrivacyState, updatePrivacyStatus, resetPlaylistSelectionState, selectPlaylist, updateState, toast, uploadError, privacyError, playlistSelectionError, state.selectedPrivacy, state.selectedPlaylist, router])
 
   const handlePublish = useCallback(async (type: "public" | "private" | "unlisted" | "schedule") => {
     console.log('[UploadHandlers] handlePublish called:', {
