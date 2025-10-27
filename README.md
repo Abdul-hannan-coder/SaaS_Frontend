@@ -252,4 +252,4 @@ For support and questions:
 ---
 
 **Built with ❤️ by Abdul Hannan**
-# Updated for main branch deployment
+# Updated for main branch deployment.
