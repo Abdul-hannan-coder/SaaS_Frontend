@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Eye, MessageCircle, ThumbsUp, Calendar, Clock, ExternalLink, Search, Filter, SortAsc, SortDesc, Video } from "lucide-react"
+import { ArrowLeft, Eye, MessageCircle, ThumbsUp, Calendar, Clock, ExternalLink, Search, Filter, SortAsc, SortDesc, Video, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { useState, useMemo } from "react"
 import RefreshButton from "@/components/ui/refresh-button"
@@ -308,6 +308,93 @@ export default function PlaylistVideosPage() {
 
   const { data } = playlistData;
   const analytics = data.analytics
+
+  // Check if analytics data is available
+  if (!analytics) {
+    return (
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/dashboard/playlists">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Playlists
+              </Link>
+            </Button>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Playlist Analytics</h1>
+              <p className="text-muted-foreground mt-1">Comprehensive analytics and insights</p>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <RefreshButton 
+              onRefresh={handleRefresh}
+              variant="outline"
+              size="sm"
+            />
+          </div>
+        </div>
+
+        {/* No Analytics Message */}
+        <Card className="border-2 border-primary/20">
+          <CardContent className="flex flex-col items-center justify-center p-12 text-center">
+            <Video className="w-16 h-16 text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Analytics Not Available</h2>
+            <p className="text-muted-foreground mb-6 max-w-md">
+              Analytics data is not available for this playlist yet. This can happen when:
+            </p>
+            <ul className="text-muted-foreground text-left mb-6 space-y-2">
+              <li>• The playlist was recently refreshed</li>
+              <li>• Analytics are still being processed</li>
+              <li>• The playlist is new</li>
+            </ul>
+            <div className="flex gap-3">
+              <Button onClick={handleRefresh} variant="default">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh Analytics
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/dashboard/playlists">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Playlists
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Show basic playlist info if available */}
+        {data && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Playlist Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {data.playlist_name && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Name:</span>
+                  <span className="font-medium">{data.playlist_name}</span>
+                </div>
+              )}
+              {data.video_count !== undefined && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Videos:</span>
+                  <span className="font-medium">{data.video_count}</span>
+                </div>
+              )}
+              {data.privacy_status && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Privacy:</span>
+                  <Badge>{data.privacy_status}</Badge>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">

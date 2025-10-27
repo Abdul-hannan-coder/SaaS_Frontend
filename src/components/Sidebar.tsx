@@ -27,10 +27,20 @@ export function Sidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isPlaylistsOpen, setIsPlaylistsOpen] = useState(false)
   const [isGenerateVideoOpen, setIsGenerateVideoOpen] = useState(false)
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null)
   
   const { playlists, isLoading: playlistsLoading } = useChannelPlaylists()
   const playlistsRef = useRef<HTMLDivElement>(null)
   const generateVideoRef = useRef<HTMLDivElement>(null)
+
+  // Track the currently selected playlist from URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const playlistId = urlParams.get('id')
+      setSelectedPlaylistId(playlistId)
+    }
+  }, [pathname])
 
   // Close playlists dropdown when clicking outside
   useEffect(() => {
@@ -204,29 +214,33 @@ export function Sidebar() {
                         Loading playlists...
                       </div>
                     ) : playlists.length > 0 ? (
-                      playlists.map((playlist) => (
-                        <Link key={playlist.id} href={`/dashboard/playlists?id=${playlist.id}`}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                              "w-full justify-start h-9 sm:h-10 px-2 sm:px-3 text-xs sm:text-sm cursor-pointer mb-1 sm:mb-2 rounded-md text-foreground transition-all duration-200",
-                              pathname === `/dashboard/playlists?id=${playlist.id}`
-                                ? "bg-accent text-accent-foreground font-medium"
-                                : "bg-transparent hover:bg-accent hover:text-accent-foreground"
-                            )}
-                            onClick={() => {
-                              setIsMobileMenuOpen(false)
-                              // Don't close the playlists dropdown when clicking on a playlist
-                              // This allows users to browse and select playlists
-                            }}
-                          >
-                            <span className="truncate max-w-[200px] sm:max-w-[180px]" title={playlist.name}>
-                              {playlist.name}
-                            </span>
-                          </Button>
-                        </Link>
-                      ))
+                      playlists.map((playlist) => {
+                        const isSelected = selectedPlaylistId === playlist.id
+                        return (
+                          <Link key={playlist.id} href={`/dashboard/playlists?id=${playlist.id}`}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                "w-full justify-start h-9 sm:h-10 px-2 sm:px-3 text-xs sm:text-sm cursor-pointer mb-1 sm:mb-2 rounded-md text-foreground transition-all duration-200",
+                                isSelected
+                                  ? "bg-accent text-accent-foreground font-medium"
+                                  : "bg-transparent hover:bg-accent hover:text-accent-foreground"
+                              )}
+                              onClick={() => {
+                                setSelectedPlaylistId(playlist.id)
+                                setIsMobileMenuOpen(false)
+                                // Don't close the playlists dropdown when clicking on a playlist
+                                // This allows users to browse and select playlists
+                              }}
+                            >
+                              <span className="truncate max-w-[200px] sm:max-w-[180px]" title={playlist.name}>
+                                {playlist.name}
+                              </span>
+                            </Button>
+                          </Link>
+                        )
+                      })
                     ) : (
                       <div className="px-2 sm:px-3 py-2 text-xs sm:text-sm text-foreground">
                         No playlists found
