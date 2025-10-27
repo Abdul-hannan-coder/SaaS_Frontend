@@ -41,15 +41,17 @@ export function TitleSection({
   }
 
   const handleSaveAndNext = async () => {
-    // Save the selected title if it's from generated ones
+    // Save title and move to next step (user will manually generate description)
     if (state.content.selectedTitle && uploadedVideoData?.id) {
       try {
         await saveTitle(uploadedVideoData.id, state.content.selectedTitle)
+        updateState({ currentStep: "description" })
       } catch (error) {
         console.error('Failed to save title:', error)
       }
+    } else {
+      updateState({ currentStep: "description" })
     }
-    updateState({ currentStep: "description" })
   }
 
   return (
@@ -123,14 +125,7 @@ export function TitleSection({
             disabled={isSavingTitle}
             className="w-full crypto-button-primary"
           >
-            {isSavingTitle ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin crypto-spinner" />
-                Saving Title...
-              </>
-            ) : (
-              'Save & Next: Generate Description'
-            )}
+            {isSavingTitle ? "Saving Title..." : "Save & Next: Generate Description"}
           </Button>
         )}
       </CardContent>

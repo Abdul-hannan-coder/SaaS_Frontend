@@ -390,12 +390,40 @@ export const useUploadHandlers = ({
 
       console.log('[UploadHandlers] Calling YouTube upload API for videoId:', videoId)
       resetYouTubeUploadState()
-      await uploadToYouTube(videoId)
-
-      toast({
-        title: "Success!",
-        description: `Video uploaded to YouTube successfully as ${state.selectedPrivacy}!`,
-      })
+      
+      try {
+        await uploadToYouTube(videoId)
+        
+        toast({
+          title: "Success!",
+          description: `Video uploaded to YouTube successfully as ${state.selectedPrivacy}!`,
+        })
+      } catch (uploadErr: any) {
+        console.error('[UploadHandlers] ⚠️ YouTube upload encountered an error:', uploadErr)
+        
+        // Check if it's a thumbnail-specific error (error code UPLOAD_005)
+        const errorData = uploadErr?.response?.data
+        const isThumbnailError = errorData?.code === 'UPLOAD_005' || 
+                                 errorData?.details?.error_type === 'thumbnail_upload_failure' ||
+                                 errorData?.message?.includes('thumbnail')
+        
+        if (isThumbnailError && errorData?.details?.youtube_video_id) {
+          // Video uploaded successfully, only thumbnail failed - treat as partial success
+          console.log('[UploadHandlers] ℹ️ Video uploaded but thumbnail failed:', {
+            youtubeVideoId: errorData.details.youtube_video_id,
+            error: errorData.message
+          })
+          
+          toast({
+            title: "Video Uploaded (Thumbnail Warning)",
+            description: "Video uploaded successfully to YouTube, but custom thumbnail couldn't be set. You may need to verify your YouTube account or set it manually.",
+            variant: "default",
+          })
+        } else {
+          // Complete upload failure - rethrow to be caught by outer catch
+          throw uploadErr
+        }
+      }
 
       // Reset states
       updateState({

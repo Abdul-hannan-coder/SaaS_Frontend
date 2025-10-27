@@ -34,15 +34,17 @@ export function DescriptionSection({
   const [customDescription, setCustomDescription] = useState("")
 
   const handleSaveAndNext = async () => {
-    // Save the description if it's generated
-    if ((state.content.description || generatedDescription) && uploadedVideoData?.id) {
+    // Save description and move to next step (user will manually generate timestamps)
+    if (state.content.description && uploadedVideoData?.id) {
       try {
-        await saveDescription(uploadedVideoData.id, state.content.description || generatedDescription)
+        await saveDescription(uploadedVideoData.id, state.content.description)
+        updateState({ currentStep: "timestamps" })
       } catch (error) {
         console.error('Failed to save description:', error)
       }
+    } else {
+      updateState({ currentStep: "timestamps" })
     }
-    updateState({ currentStep: "timestamps" })
   }
 
   const handleTemplateRegenerate = async () => {
