@@ -20,7 +20,7 @@ interface ThumbnailSectionProps {
   getCurrentVideoId: () => string | null
 }
 
-// Optimized thumbnail component with preloading and loading states
+// Optimized thumbnail component
 const OptimizedThumbnail = ({ 
   src, 
   alt, 
@@ -36,7 +36,6 @@ const OptimizedThumbnail = ({
   onSelect: () => void
   onLoad: () => void
 }) => {
-  const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
   const imgRef = useRef<HTMLImageElement>(null)
 
@@ -61,17 +60,14 @@ const OptimizedThumbnail = ({
         ref={imgRef}
         src={src}
         referrerPolicy="no-referrer"
-        onLoad={() => {
-          setImageLoaded(true)
-          onLoad()
-        }}
+        onLoad={() => onLoad()}
         onError={() => {
           setImageError(true)
           onLoad()
         }}
         alt={alt}
-        className={`w-full h-full object-cover rounded-lg ${imageLoaded ? '' : ''}`}
-        loading="eager" // Prioritize thumbnail loading
+        className="w-full h-full object-cover rounded-lg"
+        loading="eager"
       />
       {isSelected && (
         <div className="absolute top-1 right-1 bg-brand-primary rounded-full p-1 crypto-glow">
@@ -91,12 +87,7 @@ export function ThumbnailSection({
   saveThumbnail,
   getCurrentVideoId
 }: ThumbnailSectionProps) {
-  const [imgLoading, setImgLoading] = useState<boolean>(false)
   const [isSaving, setIsSaving] = useState(false)
-
-  useEffect(() => {
-    setImgLoading(thumbnailsLoading)
-  }, [thumbnailsLoading])
 
   // Hydrate previously saved thumbnail selection for this video
   useEffect(() => {
@@ -112,8 +103,6 @@ export function ThumbnailSection({
       })
     }
   }, [getCurrentVideoId])
-
-  const handleImgLoad = useCallback(() => setImgLoading(false), [])
 
   const handleThumbnailSelect = useCallback((thumbnail: string) => {
     console.log('[ThumbnailSection] Thumbnail selected:', {
@@ -188,7 +177,6 @@ export function ThumbnailSection({
         <CardTitle className="flex items-center gap-2 text-lg lg:text-xl crypto-text-primary">
           <ImageIcon className="h-5 w-5 crypto-profit" />
           Generate Thumbnail
-          {isSaving && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -206,10 +194,17 @@ export function ThumbnailSection({
           disabled={state.isProcessing || thumbnailsLoading} 
           className="w-full crypto-button-primary"
         >
-          <>
-            <ImageIcon className="w-4 h-4 mr-2" />
-            {thumbnailsLoading ? 'Generating Thumbnail...' : 'Generate Thumbnail with AI'}
-          </>
+          {thumbnailsLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Generating Thumbnail...
+            </>
+          ) : (
+            <>
+              <ImageIcon className="w-4 h-4 mr-2" />
+              Generate Thumbnail with AI
+            </>
+          )}
         </Button>
 
         {(state.content.thumbnails.length > 0 || generatedThumbnails.length > 0 || thumbnailsLoading) && (
@@ -217,13 +212,13 @@ export function ThumbnailSection({
             <Label className="crypto-text-primary flex items-center gap-2">Thumbnail:</Label>
 
             <div className="grid grid-cols-1 gap-2">
-              {(thumbnailsLoading || imgLoading) && (
+              {thumbnailsLoading && (
                 <div className="relative aspect-video border-2 rounded-lg border-primary/30 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
               )}
 
-              {!(thumbnailsLoading || imgLoading) && (state.content.thumbnails[0] || generatedThumbnails[0]) && (
+              {!thumbnailsLoading && (state.content.thumbnails[0] || generatedThumbnails[0]) && (
                 <OptimizedThumbnail
                   key={`thumb-0-${state.content.thumbnails[0] || generatedThumbnails[0]}`}
                   src={state.content.thumbnails[0] || generatedThumbnails[0]}
@@ -231,7 +226,7 @@ export function ThumbnailSection({
                   index={0}
                   isSelected={state.content.selectedThumbnail === (state.content.thumbnails[0] || generatedThumbnails[0])}
                   onSelect={() => handleThumbnailSelect(state.content.thumbnails[0] || generatedThumbnails[0])}
-                  onLoad={handleImgLoad}
+                  onLoad={() => {}} // No-op since we removed imgLoading state
                 />
               )}
             </div>
@@ -246,7 +241,7 @@ export function ThumbnailSection({
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Regenerate Thumbnail
               </Button>
-              {generatedThumbnails.length > 0 && (
+              {generatedThumbnails.length > 0 && !thumbnailsLoading && (
                 <div className="text-sm text-green-600 flex items-center gap-1">
                   <CheckCircle className="w-4 h-4" />
                   1/1 ready

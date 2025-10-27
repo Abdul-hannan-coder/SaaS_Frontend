@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Progress } from "@/components/ui/progress"
 import { Loader2, Upload, Sparkles, CheckCircle, ImageIcon, Save } from "lucide-react"
 import useVideos from "@/lib/hooks/upload/useVideos"
@@ -294,42 +293,36 @@ export default function AllInOnePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="h-5 w-5 text-brand-primary" />
-                Select a Thumbnail
+                Thumbnail
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                {processedData.results.thumbnails.generated_thumbnails.map((thumbnail, index) => (
+              {processedData.results.thumbnails.generated_thumbnails.length > 0 ? (
+                <div className="max-w-md">
                   <div
-                    key={index}
-                    onClick={() => setSelectedThumbnail(thumbnail.image_url)}
+                    onClick={() => setSelectedThumbnail(processedData.results.thumbnails.generated_thumbnails[0].image_url)}
                     className={`relative aspect-video border-2 rounded-lg cursor-pointer transition-all hover:scale-105 ${
-                      selectedThumbnail === thumbnail.image_url
+                      selectedThumbnail === processedData.results.thumbnails.generated_thumbnails[0].image_url
                         ? "border-brand-primary ring-2 ring-brand-primary/20"
                         : "border-border hover:border-brand-primary/50"
                     }`}
                   >
-                    {/* Image with skeleton placeholder while loading */}
-                    <div className="absolute inset-0">
-                      <Skeleton className="w-full h-full rounded-lg" />
-                    </div>
                     <img
-                      src={thumbnail.image_url}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover rounded-lg relative z-10"
-                      onLoad={(e) => {
-                        const el = (e.target as HTMLImageElement).previousElementSibling as HTMLElement
-                        if (el) el.style.display = 'none'
-                      }}
+                      src={processedData.results.thumbnails.generated_thumbnails[0].image_url}
+                      alt="Generated Thumbnail"
+                      className="w-full h-full object-cover rounded-lg"
+                      loading="eager"
                     />
-                    {selectedThumbnail === thumbnail.image_url && (
+                    {selectedThumbnail === processedData.results.thumbnails.generated_thumbnails[0].image_url && (
                       <div className="absolute top-2 right-2 bg-brand-primary rounded-full p-1">
                         <CheckCircle className="w-5 h-5 text-white" />
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground">No thumbnail generated</div>
+              )}
             </CardContent>
           </Card>
 
