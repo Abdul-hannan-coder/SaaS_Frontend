@@ -118,13 +118,17 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
     )
   }
 
-  // ✅ Added null check for analytics
-  const playlist = playlistData.data.analytics
-  if (!playlist) {
+  // Get playlist data from the correct location
+  // API returns data at playlistData.data level, not playlistData.data.analytics
+  const playlistInfo = playlistData.data
+  const playlist = playlistInfo.analytics || playlistInfo // Use analytics if available, otherwise use root data
+  
+  // Check if we have the essential playlist information
+  if (!playlistInfo || (!playlistInfo.playlist_id && !playlistInfo.playlist_name)) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] text-center">
-        <h2 className="text-2xl font-bold text-destructive mb-2">No Analytics Available</h2>
-        <p className="text-muted-foreground mb-4">Analytics data is not available for this playlist yet.</p>
+        <h2 className="text-2xl font-bold text-destructive mb-2">No Playlist Data Available</h2>
+        <p className="text-muted-foreground mb-4">Unable to load playlist information. Please try refreshing.</p>
         <Button onClick={() => refetch()}>
           <RefreshCw className="w-4 h-4 mr-2" />
           Refresh Data
@@ -133,8 +137,8 @@ function PlaylistData({ playlistId }: { playlistId: string }) {
     )
   }
 
-  const playlistName = (playlistData.data as any).playlist_name || (playlistData.data as any)?.playlist_info?.title || "Playlist"
-  const playlistIdForLink = (playlistData.data as any).playlist_id || (playlistData.data as any)?.playlist_info?.playlist_id || playlistId
+  const playlistName = playlistInfo.playlist_name || playlistInfo?.playlist_info?.title || "Playlist"
+  const playlistIdForLink = playlistInfo.playlist_id || playlistInfo?.playlist_info?.playlist_id || playlistId
 
   return (
     <div className="space-y-8">
