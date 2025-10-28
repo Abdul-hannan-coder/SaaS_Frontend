@@ -133,14 +133,24 @@ export default function AllInOnePage() {
 
     try {
       // Step 1: Save the video content
-      await saveAllInOne(currentVideoId, {
+      const savePayload = {
         selected_title: selectedTitle,
         selected_thumbnail_url: selectedThumbnail,
         description,
         timestamps,
         privacy_status: privacyStatus,
         playlist_name: playlistName || undefined,
+      }
+      
+      console.log('[AllInOne] Saving content with payload:', {
+        videoId: currentVideoId,
+        payload: savePayload,
+        hasPrivacyStatus: !!privacyStatus,
+        hasPlaylistName: !!playlistName,
+        timestamp: new Date().toISOString()
       })
+      
+      await saveAllInOne(currentVideoId, savePayload)
 
       toast({
         title: "Success!",

@@ -97,12 +97,12 @@ export default function useAllInOne() {
         url: `${API_BASE_URL}${url}`,
         videoId,
         hasAuthHeader: !!(headers as any)?.Authorization,
-        data: {
-          ...data,
-          selected_title: data.selected_title.substring(0, 50) + '...',
-          selected_thumbnail_url: data.selected_thumbnail_url.substring(0, 50) + '...',
-          description: data.description.substring(0, 100) + '...',
-        }
+        fullPayload: data,
+        privacy_status: data.privacy_status,
+        playlist_name: data.playlist_name,
+        hasPrivacy: !!data.privacy_status,
+        hasPlaylist: !!data.playlist_name,
+        timestampsCount: data.timestamps?.length || 0,
       })
 
       const res = await axiosInstance.post(url, data, { 
