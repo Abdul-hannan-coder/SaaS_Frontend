@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -12,12 +11,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Play, Bell, Settings, LogOut, User, Sun, Moon } from "lucide-react"
+import { Play, Menu, Settings, LogOut, Sun, Moon } from "lucide-react"
 import { useTheme } from "next-themes"
 import useAuth from "@/lib/hooks/auth/useAuth"
 
-export function DashboardHeader() {
-  const [notifications] = useState(3) // Mock notification count
+interface DashboardHeaderProps {
+  onMenuClick?: () => void
+}
+
+export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const { user, logout } = useAuth()
   const { theme, setTheme } = useTheme()
   const isDark = theme === 'dark'
@@ -54,14 +56,15 @@ export function DashboardHeader() {
 
         {/* Right side */}
         <div className="flex items-center space-x-2 sm:space-x-4">
-          {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative flex-shrink-0">
-            <Bell className="h-4 w-4" />
-            {notifications > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
-                {notifications}
-              </span>
-            )}
+          {/* Hamburger Menu */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="relative flex-shrink-0 lg:hidden"
+            onClick={onMenuClick}
+            aria-label="Toggle sidebar menu"
+          >
+            <Menu className="h-5 w-5" />
           </Button>
 
           {/* User Menu */}
@@ -91,10 +94,6 @@ export function DashboardHeader() {
                 <span>{isDark ? 'Switch to Light mode' : 'Switch to Dark mode'}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/user-settings" className="flex items-center">
                   <Settings className="mr-2 h-4 w-4" />

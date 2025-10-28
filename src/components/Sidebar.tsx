@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Upload, Video, BarChart3, Menu, X, List, ChevronDown, ChevronRight, Sparkles } from "lucide-react"
+import { Upload, Video, BarChart3, List, ChevronDown, ChevronRight, Sparkles } from "lucide-react"
 import { useChannelPlaylists } from "@/lib/hooks/dashboard/playlists/useChannelPlaylists"
 
 const sidebarItems = [
@@ -21,26 +21,20 @@ const sidebarItems = [
   },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean
+  onToggle?: () => void
+}
+
+export function Sidebar({ isOpen = false, onToggle }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isPlaylistsOpen, setIsPlaylistsOpen] = useState(false)
   const [isGenerateVideoOpen, setIsGenerateVideoOpen] = useState(false)
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null)
   
   const { playlists, isLoading: playlistsLoading } = useChannelPlaylists()
   const playlistsRef = useRef<HTMLDivElement>(null)
   const generateVideoRef = useRef<HTMLDivElement>(null)
-
-  // Track the currently selected playlist from URL
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const playlistId = urlParams.get('id')
-      setSelectedPlaylistId(playlistId)
-    }
-  }, [pathname])
 
   // Close playlists dropdown when clicking outside
   useEffect(() => {
@@ -81,22 +75,11 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile menu button - Enhanced for better mobile UX */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="fixed top-20 left-4 z-50 lg:hidden bg-background/80 backdrop-blur-sm border border-border shadow-lg hover:bg-background/90"
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-      >
-        {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </Button>
-
       {/* Sidebar - Enhanced mobile responsiveness */}
       <aside
         className={cn(
           "fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-72 sm:w-64 border-r border-[var(--border-primary)] bg-secondary/95 backdrop-blur-md transition-transform duration-300 ease-in-out shadow-xl lg:shadow-none",
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="flex h-full flex-col">
@@ -114,7 +97,7 @@ export function Sidebar() {
                           ? "bg-accent text-accent-foreground font-medium"
                           : "bg-transparent hover:bg-accent hover:text-accent-foreground",
                       )}
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={onToggle}
                     >
                       <item.icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
                       <span className="truncate">{item.title}</span>
@@ -158,7 +141,7 @@ export function Sidebar() {
                             ? "bg-accent text-accent-foreground font-medium"
                             : "bg-transparent hover:bg-accent hover:text-accent-foreground"
                         )}
-                        onClick={() => setIsMobileMenuOpen(false)}
+                        onClick={onToggle}
                       >
                         <Upload className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                         <span className="truncate">Manual Upload</span>
@@ -174,7 +157,7 @@ export function Sidebar() {
                             ? "bg-accent text-accent-foreground font-medium"
                             : "bg-transparent hover:bg-accent hover:text-accent-foreground"
                         )}
-                        onClick={() => setIsMobileMenuOpen(false)}
+                        onClick={onToggle}
                       >
                         <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                         <span className="truncate">AI Generator</span>
@@ -214,33 +197,25 @@ export function Sidebar() {
                         Loading playlists...
                       </div>
                     ) : playlists.length > 0 ? (
-                      playlists.map((playlist) => {
-                        const isSelected = selectedPlaylistId === playlist.id
-                        return (
-                          <Link key={playlist.id} href={`/dashboard/playlists?id=${playlist.id}`}>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className={cn(
-                                "w-full justify-start h-9 sm:h-10 px-2 sm:px-3 text-xs sm:text-sm cursor-pointer mb-1 sm:mb-2 rounded-md text-foreground transition-all duration-200",
-                                isSelected
-                                  ? "bg-accent text-accent-foreground font-medium"
-                                  : "bg-transparent hover:bg-accent hover:text-accent-foreground"
-                              )}
-                              onClick={() => {
-                                setSelectedPlaylistId(playlist.id)
-                                setIsMobileMenuOpen(false)
-                                // Don't close the playlists dropdown when clicking on a playlist
-                                // This allows users to browse and select playlists
-                              }}
-                            >
-                              <span className="truncate max-w-[200px] sm:max-w-[180px]" title={playlist.name}>
-                                {playlist.name}
-                              </span>
-                            </Button>
-                          </Link>
-                        )
-                      })
+                      playlists.map((playlist) => (
+                        <Link key={playlist.id} href={`/dashboard/playlists?id=${playlist.id}`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              "w-full justify-start h-9 sm:h-10 px-2 sm:px-3 text-xs sm:text-sm cursor-pointer mb-1 sm:mb-2 rounded-md text-foreground transition-all duration-200",
+                              pathname === `/dashboard/playlists?id=${playlist.id}`
+                                ? "bg-accent text-accent-foreground font-medium"
+                                : "bg-transparent hover:bg-accent hover:text-accent-foreground"
+                            )}
+                            onClick={onToggle}
+                          >
+                            <span className="truncate max-w-[200px] sm:max-w-[180px]" title={playlist.name}>
+                              {playlist.name}
+                            </span>
+                          </Button>
+                        </Link>
+                      ))
                     ) : (
                       <div className="px-2 sm:px-3 py-2 text-xs sm:text-sm text-foreground">
                         No playlists found
@@ -257,10 +232,10 @@ export function Sidebar() {
       </aside>
 
       {/* Mobile overlay - Enhanced backdrop */}
-      {isMobileMenuOpen && (
+      {isOpen && (
         <div
           className="fixed inset-0 z-30 bg-background/90 backdrop-blur-md lg:hidden transition-opacity duration-300"
-          onClick={() => setIsMobileMenuOpen(false)}
+          onClick={onToggle}
           aria-label="Close menu overlay"
         />
       )}

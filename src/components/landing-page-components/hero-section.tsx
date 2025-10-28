@@ -15,7 +15,7 @@ export function HeroSection() {
     <h1 className="text-5xl md:text-7xl font-bold mb-6 crypto-text-primary animate-slide-up">
       Automate Your YouTube Success
     </h1>
-    <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto animate-slide-up animation-delay-200">
+    <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto px-2 sm:px-0">
       Upload your videos and let AI generate compelling titles, descriptions, and thumbnails. Schedule and
       publish with one click.
     </p>

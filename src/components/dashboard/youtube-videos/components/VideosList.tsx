@@ -183,9 +183,13 @@ export default function VideosList({ videos, viewMode, hasMore, isLoadingMore, o
                       View Details
                     </Link>
                   </Button>
-                  <Button variant="outline" size="sm" className="sm:w-auto">
-                    <Link href={`https://www.youtube.com/watch?v=${video.video_id}`} target="_blank">
-                      Watch on YouTube
+                  <Button variant="outline" size="sm" className="sm:w-auto flex justify-center items-center">
+                    <Link 
+                      href={`https://www.youtube.com/watch?v=${video.video_id}`} 
+                      target="_blank" 
+                      className="w-full flex justify-center items-center"
+                    >
+                      <span className="w-full text-center">Watch on YouTube</span>
                     </Link>
                   </Button>
                 </div>

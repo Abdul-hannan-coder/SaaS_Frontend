@@ -231,27 +231,27 @@ export default function AllInOnePage() {
   }
 
   return (
-    <div className="container mx-auto p-4 lg:p-8 space-y-6">
-      <div className="flex items-center gap-3">
-        <Sparkles className="h-8 w-8 text-brand-primary" />
+    <div className="container mx-auto p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 sm:space-y-5 md:space-y-6">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-brand-primary flex-shrink-0" />
         <div>
-          <h1 className="text-3xl font-bold">All-in-One Video Generator</h1>
-          <p className="text-muted-foreground">Upload a video and let AI generate everything</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">All-in-One Video Generator</h1>
+          <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Upload a video and let AI generate everything</p>
         </div>
       </div>
 
       {step === "upload" && (
         <Card>
-          <CardHeader>
-            <CardTitle>Upload Your Video</CardTitle>
-            <CardDescription>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl">Upload Your Video</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Upload a video file and we'll automatically generate titles, descriptions, timestamps, and thumbnails using AI
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-4 sm:p-6">
+            <div className="space-y-3 sm:space-y-4">
               {/* Upload Area */}
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+              <div className="border-2 border-dashed border-border rounded-lg p-4 sm:p-6 md:p-8 text-center">
                 <Input
                   type="file"
                   accept="video/*"
@@ -263,28 +263,31 @@ export default function AllInOnePage() {
                 />
                 
                 {!isUploading ? (
-                  <div className="flex flex-col items-center gap-4">
-                    <Upload className="h-12 w-12 text-muted-foreground" />
+                  <div className="flex flex-col items-center gap-3 sm:gap-4">
+                    <Upload className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-muted-foreground" />
                     <div className="space-y-1">
                       <Label htmlFor="video-upload" className="cursor-pointer">
-                        <p className="text-lg font-medium">Click to upload or drag and drop</p>
+                        <p className="text-sm sm:text-base md:text-lg font-medium">Click to upload or drag and drop</p>
                       </Label>
-                      <p className="text-sm text-muted-foreground">MP4, MOV, AVI, or any video format</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">MP4, MOV, AVI, or any video format</p>
                     </div>
                     <Button
                       type="button"
                       variant="crypto"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploading}
+                      className="text-xs sm:text-sm"
                     >
-                      <Upload className="h-4 w-4 mr-2" /> Select Video File
+                      <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" /> 
+                      <span className="hidden sm:inline">Select Video File</span>
+                      <span className="sm:hidden">Select Video</span>
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="h-12 w-12 animate-spin text-brand-primary" />
+                  <div className="flex flex-col items-center gap-3 sm:gap-4">
+                    <Loader2 className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 animate-spin text-brand-primary" />
                     <div className="w-full max-w-md space-y-2">
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between text-xs sm:text-sm">
                         <span className="truncate mr-2">
                           {uploadedFile?.name ? `Uploading ${uploadedFile.name}` : 'Uploading video...'}
                         </span>
@@ -297,7 +300,7 @@ export default function AllInOnePage() {
               </div>
               
               {uploadedFile && !isUploading && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   Selected: {uploadedFile.name}
                 </p>
               )}
@@ -308,15 +311,15 @@ export default function AllInOnePage() {
 
       {step === "processing" && (
         <Card>
-          <CardContent className="py-12">
-            <div className="flex flex-col items-center gap-6">
-              <Loader2 className="h-16 w-16 animate-spin text-brand-primary" />
+          <CardContent className="py-8 sm:py-10 md:py-12 px-4 sm:px-6">
+            <div className="flex flex-col items-center gap-4 sm:gap-5 md:gap-6">
+              <Loader2 className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 animate-spin text-brand-primary" />
               <div className="text-center space-y-2">
-                <h3 className="text-2xl font-bold">AI is Working Its Magic ✨</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-lg sm:text-xl md:text-2xl font-bold">AI is Working Its Magic ✨</h3>
+                <p className="text-xs sm:text-sm md:text-base text-muted-foreground">
                   Generating titles, descriptions, timestamps, and thumbnails...
                 </p>
-                <p className="text-sm text-muted-foreground">This may take a few moments</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">This may take a few moments</p>
               </div>
             </div>
           </CardContent>
@@ -324,31 +327,31 @@ export default function AllInOnePage() {
       )}
 
       {step === "review" && processedData && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-5 md:space-y-6">
           {/* Titles */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-brand-primary" />
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-brand-primary" />
                 Select a Title
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-2 sm:space-y-3">
                 {processedData.results.titles.generated_titles.map((title, index) => (
                   <div
                     key={index}
                     onClick={() => setSelectedTitle(title)}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    className={`p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${
                       selectedTitle === title
                         ? "border-brand-primary bg-brand-primary/10"
                         : "border-border hover:border-brand-primary/50"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="flex-1">{title}</p>
+                    <div className="flex items-start justify-between gap-2 sm:gap-3">
+                      <p className="flex-1 text-sm sm:text-base">{title}</p>
                       {selectedTitle === title && (
-                        <CheckCircle className="h-5 w-5 text-brand-primary flex-shrink-0" />
+                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-brand-primary flex-shrink-0" />
                       )}
                     </div>
                   </div>
@@ -359,15 +362,15 @@ export default function AllInOnePage() {
 
           {/* Thumbnails */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ImageIcon className="h-5 w-5 text-brand-primary" />
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
+                <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5 text-brand-primary" />
                 Thumbnail
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               {processedData.results.thumbnails.generated_thumbnails.length > 0 ? (
-                <div className="max-w-md">
+                <div className="max-w-md mx-auto sm:mx-0">
                   <div
                     onClick={() => setSelectedThumbnail(processedData.results.thumbnails.generated_thumbnails[0].image_url)}
                     className={`relative aspect-video border-2 rounded-lg cursor-pointer transition-all hover:scale-105 ${
@@ -383,28 +386,28 @@ export default function AllInOnePage() {
                       loading="eager"
                     />
                     {selectedThumbnail === processedData.results.thumbnails.generated_thumbnails[0].image_url && (
-                      <div className="absolute top-2 right-2 bg-brand-primary rounded-full p-1">
-                        <CheckCircle className="w-5 h-5 text-white" />
+                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-brand-primary rounded-full p-0.5 sm:p-1">
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
                     )}
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground">No thumbnail generated</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">No thumbnail generated</div>
               )}
             </CardContent>
           </Card>
 
           {/* Description */}
           <Card>
-            <CardHeader>
-              <CardTitle>Description</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg md:text-xl">Description</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6">
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="min-h-[200px] font-mono text-sm"
+                className="min-h-[150px] sm:min-h-[180px] md:min-h-[200px] font-mono text-xs sm:text-sm"
                 placeholder="Edit the generated description..."
               />
             </CardContent>
@@ -412,13 +415,13 @@ export default function AllInOnePage() {
 
           {/* Timestamps */}
           <Card>
-            <CardHeader>
-              <CardTitle>Timestamps</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg md:text-xl">Timestamps</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-2 sm:space-y-2.5">
                 {timestamps.map((ts, index) => (
-                  <div key={index} className="flex gap-3 items-center">
+                  <div key={index} className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
                     <Input
                       value={ts.time}
                       onChange={(e) => {
@@ -426,7 +429,7 @@ export default function AllInOnePage() {
                         newTimestamps[index].time = e.target.value
                         setTimestamps(newTimestamps)
                       }}
-                      className="w-24"
+                      className="w-full sm:w-24 text-xs sm:text-sm"
                       placeholder="00:00"
                     />
                     <Input
@@ -436,7 +439,7 @@ export default function AllInOnePage() {
                         newTimestamps[index].title = e.target.value
                         setTimestamps(newTimestamps)
                       }}
-                      className="flex-1"
+                      className="flex-1 text-xs sm:text-sm"
                       placeholder="Chapter title"
                     />
                   </div>
@@ -447,36 +450,36 @@ export default function AllInOnePage() {
 
           {/* Privacy & Playlist */}
           <Card>
-            <CardHeader>
-              <CardTitle>Video Settings</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg md:text-xl">Video Settings</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-2">
-                  <Label>Privacy Status</Label>
+                  <Label className="text-xs sm:text-sm">Privacy Status</Label>
                   <Select value={privacyStatus} onValueChange={setPrivacyStatus}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full text-xs sm:text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="public">Public</SelectItem>
-                      <SelectItem value="private">Private</SelectItem>
-                      <SelectItem value="unlisted">Unlisted</SelectItem>
+                      <SelectItem value="public" className="text-xs sm:text-sm">Public</SelectItem>
+                      <SelectItem value="private" className="text-xs sm:text-sm">Private</SelectItem>
+                      <SelectItem value="unlisted" className="text-xs sm:text-sm">Unlisted</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Playlist (Optional)</Label>
+                  <Label className="text-xs sm:text-sm">Playlist (Optional)</Label>
                   <Select value={playlistName} onValueChange={setPlaylistName}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full text-xs sm:text-sm">
                       <SelectValue placeholder="No playlist" />
                     </SelectTrigger>
                     <SelectContent>
                       {playlists.length === 0 ? (
-                        <div className="px-2 py-1 text-sm text-muted-foreground">No playlists found</div>
+                        <div className="px-2 py-1 text-xs sm:text-sm text-muted-foreground">No playlists found</div>
                       ) : (
                         playlists.map((playlist) => (
-                          <SelectItem key={playlist.id} value={playlist.name}>
+                          <SelectItem key={playlist.id} value={playlist.name} className="truncate text-xs sm:text-sm">
                             {playlist.name}
                           </SelectItem>
                         ))
@@ -489,7 +492,7 @@ export default function AllInOnePage() {
           </Card>
 
           {/* Save Button */}
-          <div className="flex justify-end gap-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4">
             <Button
               variant="outline"
               onClick={() => {
@@ -497,28 +500,32 @@ export default function AllInOnePage() {
                 setUploadedFile(null)
               }}
               disabled={isSaving}
+              className="w-full sm:w-auto text-xs sm:text-sm"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSave}
               disabled={isSaving || isUploadingToYouTube || !selectedTitle || !selectedThumbnail || !description}
-              className="min-w-[150px]"
+              className="w-full sm:w-auto sm:min-w-[150px] text-xs sm:text-sm"
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
+                  <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 animate-spin" />
+                  <span className="hidden sm:inline">Saving...</span>
+                  <span className="sm:hidden">Saving</span>
                 </>
               ) : isUploadingToYouTube ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Uploading to YouTube...
+                  <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 animate-spin" />
+                  <span className="hidden sm:inline">Uploading...</span>
+                  <span className="sm:hidden">Uploading</span>
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save & Upload to YouTube
+                  <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  <span className="hidden sm:inline">Save & Upload to YouTube</span>
+                  <span className="sm:hidden">Save & Upload</span>
                 </>
               )}
             </Button>

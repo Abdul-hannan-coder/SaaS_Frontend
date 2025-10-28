@@ -74,11 +74,13 @@ export default function DashboardOverview() {
 
   return (
     <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 md:p-6 max-w-full overflow-hidden dashboard-container">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
-        <h1 className="text-xl sm:text-2xl font-semibold truncate">Dashboard Overview</h1>
+      <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-2 sm:gap-4 w-full">
+        <h1 className="text-lg sm:text-xl md:text-2xl font-semibold break-words w-full sm:w-auto text-center sm:text-left">
+          Dashboard Overview
+        </h1>
         <button
           onClick={handleRefresh}
-          className="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors w-full sm:w-auto"
+          className="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors w-full sm:w-auto justify-center"
         >
           Refresh
         </button>

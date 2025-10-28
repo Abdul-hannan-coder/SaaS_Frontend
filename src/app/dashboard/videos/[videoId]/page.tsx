@@ -8,10 +8,9 @@ import { asNumber } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { ArrowLeft, Eye, MessageCircle, ThumbsUp, Calendar, Clock, Tag, ExternalLink, TrendingUp, TrendingDown, Target, Activity, BarChart3, Lightbulb, ChevronDown, ChevronUp, Pencil } from "lucide-react"
+import { ArrowLeft, Eye, MessageCircle, ThumbsUp, Calendar, Clock, Tag, ExternalLink, TrendingUp, TrendingDown, Target, Activity, BarChart3, Lightbulb, ChevronDown, ChevronUp, Pencil, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import CommentsSection from "@/components/dashboard/videos/CommentsSection"
-import RefreshButton from "@/components/ui/refresh-button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -198,112 +197,127 @@ export default function VideoDetailPage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/dashboard/videos">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Videos
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Video Details</h1>
-            <p className="text-muted-foreground mt-1">Comprehensive video analytics and insights</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <RefreshButton 
-            onRefresh={refetch}
-            variant="outline"
-            size="sm"
-          />
-          <Button size="sm" variant="crypto" onClick={handleOpenEdit}>
-            <Pencil className="w-4 h-4 mr-2" />
-            Edit Video
-          </Button>
-        </div>
+    <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6">
+      {/* Mobile Back Button - Only visible on mobile */}
+      
+
+      {/* Header Section */}
+      <div className="md:hidden">
+        <h1 className="text-2xl font-bold text-foreground">Video Details</h1>
+        <p className="text-sm text-muted-foreground mt-1">Comprehensive video analytics</p>
+      </div>
+      
+      <div className="hidden md:block">
+        <h1 className="text-3xl font-bold text-foreground">Video Details</h1>
+        <p className="text-muted-foreground mt-1">Comprehensive video analytics and insights</p>
+      </div>
+      <div className="md:hidden">
+        <Button variant="outline" size="sm" asChild className="w-full h-10">
+          <Link href="/dashboard/videos" className="flex items-center justify-center">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Videos
+          </Link>
+        </Button>
       </div>
 
-      <div className="grid lg:grid-cols-1 gap-8">
-        <div className="space-y-6">
-          {/* Main Video Card */}
-          <Card>
-            <CardContent className="p-0">
-              <div className="relative">
-                <img
-                  src={videoData.thumbnail_url || "/placeholder.svg"}
-                  alt={videoData.title}
-                  className="w-full h-64 md:h-80 object-cover rounded-t-lg"
-                />
-                <div className="absolute bottom-4 right-4 bg-black/80 text-white px-3 py-1 rounded text-sm font-medium">
-                  {formatDuration(videoData.duration)}
-                </div>
-                <div className="absolute top-4 right-4">
-                  <Button size="sm" asChild className="crypto-button-primary">
-                    <Link href={videoData.youtube_url || `https://www.youtube.com/watch?v=${videoData.video_id}`} target="_blank">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Watch on YouTube
-                    </Link>
-                  </Button>
+      {/* Action Buttons */}
+      <div className="flex items-center gap-2 md:gap-3">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={refetch}
+          className="flex-1 md:flex-none h-10 text-xs sm:text-sm px-3 sm:px-4"
+        >
+          <RefreshCw className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+          <span className="hidden sm:inline">Refresh for live data</span>
+          <span className="sm:hidden">Refresh</span>
+        </Button>
+        <Button size="sm" variant="crypto" onClick={handleOpenEdit} className="flex-1 md:flex-none h-10 px-3 sm:px-4">
+          <Pencil className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+          <span className="hidden sm:inline">Edit Video</span>
+          <span className="sm:hidden">Edit</span>
+        </Button>
+      </div>
+
+      {/* Main Video Card */}
+      <div className="space-y-3 sm:space-y-4 md:space-y-5 lg:space-y-6">
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="relative">
+              <img
+                src={videoData.thumbnail_url || "/placeholder.svg"}
+                alt={videoData.title}
+                className="w-full h-56 sm:h-64 md:h-72 lg:h-80 object-cover rounded-t-lg"
+              />
+              <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 md:bottom-4 md:right-4 bg-black/85 text-white px-2 py-1 sm:px-3 sm:py-1.5 rounded text-xs sm:text-sm font-medium">
+                {formatDuration(videoData.duration)}
+              </div>
+              <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4">
+                <Button size="sm" asChild className="crypto-button-primary h-9 sm:h-10">
+                  <Link href={videoData.youtube_url || `https://www.youtube.com/watch?v=${videoData.video_id}`} target="_blank" className="flex items-center">
+                    <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Watch on YouTube</span>
+                    <span className="sm:hidden">Watch</span>
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            <div className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
+              <div>
+                <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-foreground mb-2 sm:mb-3">{videoData.title}</h2>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">Published </span>
+                    <span className="truncate">{formatDate(videoData.published_at)}</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    {formatDuration(videoData.duration)}
+                  </span>
+                  <Badge variant="secondary" className="text-xs">{videoData.content_category}</Badge>
+                  <Badge variant={videoData.privacy_status === "public" ? "default" : "secondary"} className="text-xs">
+                    {videoData.privacy_status}
+                  </Badge>
                 </div>
               </div>
-              <div className="p-6 space-y-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground mb-2">{videoData.title}</h2>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      Published {formatDate(videoData.published_at)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {formatDuration(videoData.duration)}
-                    </span>
-                    <Badge variant="secondary">{videoData.content_category}</Badge>
-                    <Badge variant={videoData.privacy_status === "public" ? "default" : "secondary"}>
-                      {videoData.privacy_status}
-                    </Badge>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-2 text-muted-foreground mb-1">
-                      <Eye className="w-4 h-4" />
-                      <span className="text-sm">Views</span>
-                    </div>
-                    <div className="text-2xl font-bold">{videoData.view_count.toLocaleString()}</div>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 p-3 sm:p-4 bg-muted/50 rounded-lg">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1 md:gap-2 text-muted-foreground mb-1">
+                    <Eye className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Views</span>
                   </div>
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-2 text-muted-foreground mb-1">
-                      <ThumbsUp className="w-4 h-4" />
-                      <span className="text-sm">Likes</span>
-                    </div>
-                    <div className="text-2xl font-bold">{videoData.like_count}</div>
+                  <div className="text-base sm:text-lg md:text-2xl font-bold break-all">{videoData.view_count.toLocaleString()}</div>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1 md:gap-2 text-muted-foreground mb-1">
+                    <ThumbsUp className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Likes</span>
                   </div>
-                  <div className="text-center">
-                    <div className="flex items-center justify-center gap-2 text-muted-foreground mb-1">
-                      <MessageCircle className="w-4 h-4" />
-                      <span className="text-sm">Comments</span>
-                    </div>
-                    <div className="text-2xl font-bold">{videoData.comment_count}</div>
+                  <div className="text-base sm:text-lg md:text-2xl font-bold">{videoData.like_count}</div>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-1 md:gap-2 text-muted-foreground mb-1">
+                    <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">Comments</span>
                   </div>
+                  <div className="text-base sm:text-lg md:text-2xl font-bold">{videoData.comment_count}</div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Description */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Description</CardTitle>
-            </CardHeader>
+        {/* Description */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg md:text-xl">Description</CardTitle>
+          </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <div 
-                  className={`text-muted-foreground leading-relaxed whitespace-pre-line transition-all duration-300 ${
+                  className={`text-sm md:text-base text-muted-foreground leading-relaxed whitespace-pre-line transition-all duration-300 ${
                     isDescriptionExpanded ? 'max-h-none' : 'max-h-20 overflow-hidden'
                   }`}
                 >
@@ -334,25 +348,25 @@ export default function VideoDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Performance Analytics */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                Performance Analytics
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Performance Analytics */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl">
+              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
+              Performance Analytics
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 sm:space-y-5 md:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
                 <div className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Performance Score</span>
-                      <span className="text-sm text-muted-foreground">{videoData.performance_score || 0}</span>
+                      <span className="text-xs md:text-sm font-medium">Performance Score</span>
+                      <span className="text-xs md:text-sm text-muted-foreground">{videoData.performance_score || 0}</span>
                     </div>
                     <Progress value={Math.min(videoData.performance_score || 0, 100)} className="h-2" />
                     <div className="flex items-center gap-2 mt-2">
-                      <Badge className={getPerformanceColor(videoData.performance_level)}>
+                      <Badge className={`${getPerformanceColor(videoData.performance_level)} text-xs`}>
                         {videoData.performance_level}
                       </Badge>
                     </div>
@@ -360,12 +374,12 @@ export default function VideoDetailPage() {
                   
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Engagement Rate</span>
-                      <span className="text-sm text-muted-foreground">{videoData.engagement_rate || 0}%</span>
+                      <span className="text-xs md:text-sm font-medium">Engagement Rate</span>
+                      <span className="text-xs md:text-sm text-muted-foreground">{videoData.engagement_rate || 0}%</span>
                     </div>
                     <Progress value={Math.min((videoData.engagement_rate || 0) * 10, 100)} className="h-2" />
                     <div className="flex items-center gap-2 mt-2">
-                      <Badge className={getEngagementColor(videoData.engagement_level)}>
+                      <Badge className={`${getEngagementColor(videoData.engagement_level)} text-xs`}>
                         {videoData.engagement_level}
                       </Badge>
                     </div>
@@ -373,27 +387,28 @@ export default function VideoDetailPage() {
                 </div>
                 
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-3 bg-muted/50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{videoData.views_per_day || 0}</div>
-                      <div className="text-xs text-muted-foreground">Views per Day</div>
+                  <div className="grid grid-cols-2 gap-3 md:gap-4">
+                    <div className="text-center p-2 md:p-3 bg-muted/50 rounded-lg">
+                      <div className="text-lg md:text-2xl font-bold text-blue-600">{videoData.views_per_day || 0}</div>
+                      <div className="text-xs md:text-sm text-muted-foreground">Views per Day</div>
                     </div>
-                    <div className="text-center p-3 bg-muted/50 rounded-lg">
-                      <div className="text-2xl font-bold crypto-profit">{(videoData.watch_time_hours || 0).toFixed(2)}</div>
-                      <div className="text-xs text-muted-foreground">Watch Time (hrs)</div>
+                    <div className="text-center p-2 md:p-3 bg-muted/50 rounded-lg">
+                      <div className="text-lg md:text-2xl font-bold crypto-profit">{(videoData.watch_time_hours || 0).toFixed(2)}</div>
+                      <div className="text-xs md:text-sm text-muted-foreground">Watch Time (hrs)</div>
                     </div>
                   </div>
                   
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">{videoData.days_since_published || 0}</div>
-                    <div className="text-xs text-muted-foreground">Days Since Published</div>
+                  <div className="text-center p-2 md:p-3 bg-muted/50 rounded-lg">
+                    <div className="text-lg md:text-2xl font-bold text-purple-600">{videoData.days_since_published || 0}</div>
+                    <div className="text-xs md:text-sm text-muted-foreground">Days Since Published</div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Comments Section */}
+        {/* Comments Section */}
+        <div className="mt-4 sm:mt-5 md:mt-6">
           <CommentsSection videoId={videoId} />
         </div>
       </div>

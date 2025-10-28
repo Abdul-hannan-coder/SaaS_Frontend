@@ -10,7 +10,7 @@ interface UploadStepsIndicatorProps {
 
 export const UploadStepsIndicator = ({ steps, currentStep }: UploadStepsIndicatorProps) => {
   return (
-    <div className="w-full overflow-x-auto scrollbar-hide">
+    <div className="w-full overflow-x-auto scrollbar-hide py-2">
       <div className="flex items-center justify-between max-w-4xl mx-auto px-2 sm:px-4 min-w-max sm:min-w-0">
         {steps.map((step, index) => (
           <div key={step.id} className="flex items-center flex-1 min-w-0">

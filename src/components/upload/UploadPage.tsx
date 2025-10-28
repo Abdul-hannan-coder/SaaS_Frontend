@@ -169,10 +169,10 @@ export default function UploadPage() {
   // Show loading screen while checking YouTube credentials
   if (credentialChecking || !shouldAllowAccess) {
     return (
-      <div className="min-h-screen crypto-gradient-bg flex items-center justify-center">
+      <div className="min-h-screen crypto-gradient-bg flex items-center justify-center px-4">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary mx-auto"></div>
-          <p className="crypto-text-secondary">
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 border-b-2 border-brand-primary mx-auto"></div>
+          <p className="crypto-text-secondary text-sm sm:text-base">
             {credentialChecking ? 'Checking YouTube credentials...' : 'Redirecting to YouTube connection...'}
           </p>
         </div>
@@ -194,18 +194,18 @@ export default function UploadPage() {
         continueText="Continue to Title Generation"
       />
 
-      <div className="container mx-auto px-4 py-6 space-y-6 lg:space-y-8">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-5 md:py-6 space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8">
         {/* Header */}
         <div className="text-center lg:text-left">
-          <h1 className="text-2xl lg:text-3xl font-bold crypto-text-primary">Upload Video</h1>
-          <p className="crypto-text-secondary mt-2">Create and optimize your YouTube content with AI assistance.</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold crypto-text-primary">Upload Video</h1>
+          <p className="crypto-text-secondary mt-1 sm:mt-2 text-xs sm:text-sm md:text-base">Create and optimize your YouTube content with AI assistance.</p>
         </div>
 
         {/* Steps Indicator */}
         <UploadStepsIndicator steps={steps} currentStep={state.currentStep} />
 
         {/* Main Content */}
-        <div className="max-w-4xl mx-auto space-y-6 lg:space-y-8">
+        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8">
           
           {/* Upload Section */}
           {state.currentStep === "upload" && (

@@ -127,9 +127,9 @@ export default function VideoCard({ video }: VideoCardProps) {
             <Button 
               variant="outline" 
               size="sm" 
-              className="sm:w-auto lg:w-full xl:w-auto text-xs lg:text-[11px] xl:text-xs h-8"
+              className="sm:w-auto lg:w-full xl:w-auto text-xs lg:text-[11px] xl:text-xs h-8 flex justify-center items-center"
             >
-              <Link href={`https://www.youtube.com/watch?v=${video.video_id}`} target="_blank">
+              <Link href={`https://www.youtube.com/watch?v=${video.video_id}`} target="_blank" className="w-full flex justify-center items-center">
                 Watch
               </Link>
             </Button>

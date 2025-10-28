@@ -91,77 +91,78 @@ function CommentItem({ comment, isReply = false, onReply, onDelete, onGenerateAi
   }
 
   return (
-    <div className={`space-y-3 ${isReply ? 'ml-8 border-l-2 border-muted pl-4' : ''}`}>
-      <div className="flex items-start space-x-3">
-        <Avatar className="h-8 w-8">
+    <div className={`space-y-3 ${isReply ? 'sm:ml-8 ml-2 sm:border-l-2 border-l-0 border-muted sm:pl-4 pl-2' : ''}`}>
+      <div className="flex items-start gap-2 sm:gap-3">
+        <Avatar className="h-8 w-8 flex-shrink-0">
           <AvatarImage src={comment.author_profile_image_url} alt={comment.author_display_name} />
           <AvatarFallback className="text-xs">
             {getInitials(comment.author_display_name)}
           </AvatarFallback>
         </Avatar>
         
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 mb-1">
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
             <span className="text-sm font-medium text-foreground truncate">
               {comment.author_display_name}
             </span>
             {isReply && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="text-xs flex-shrink-0">
                 Reply
               </Badge>
             )}
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground flex-shrink-0">
               {formatDate(comment.published_at)}
             </span>
           </div>
           
-          <div className="text-sm text-foreground leading-relaxed">
+          <div className="text-sm text-foreground leading-relaxed break-words">
             {comment.text_display}
           </div>
           
-          <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-2">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <ThumbsUp className="h-3 w-3" />
                 <span>{comment.like_count}</span>
               </div>
               {comment.reply_count > 0 && (
-                <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MessageCircle className="h-3 w-3" />
-                  <span>{comment.reply_count} replies</span>
+                  <span className="hidden sm:inline">{comment.reply_count} replies</span>
+                  <span className="sm:hidden">{comment.reply_count}</span>
                 </div>
               )}
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               {!isReply && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsReplying(!isReplying)}
-                  className="h-6 px-2 text-xs"
+                  className="h-7 px-2 text-xs"
                 >
-                  <Reply className="h-3 w-3 mr-1" />
-                  Reply
+                  <Reply className="h-3.5 w-3.5 sm:mr-1" />
+                  <span className="hidden sm:inline">Reply</span>
                 </Button>
               )}
               {!isReply && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 px-2 text-xs"
+                  className="h-7 px-2 text-xs"
                   onClick={() => onGenerateAi(comment.comment_id, comment.text_original || comment.text_display)}
                   disabled={!!isGeneratingAi}
                 >
                   {isGeneratingAi ? (
                     <>
-                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                      Generating
+                      <Loader2 className="h-3.5 w-3.5 sm:mr-1 animate-spin" />
+                      <span className="hidden sm:inline">Generating</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="h-3 w-3 mr-1" />
-                      AI
+                      <Sparkles className="h-3.5 w-3.5 sm:mr-1" />
+                      <span className="hidden sm:inline">AI</span>
                     </>
                   )}
                 </Button>
@@ -172,24 +173,24 @@ function CommentItem({ comment, isReply = false, onReply, onDelete, onGenerateAi
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
-                    <Trash2 className="h-3 w-3 mr-1" />
-                    Delete
+                    <Trash2 className="h-3.5 w-3.5 sm:mr-1" />
+                    <span className="hidden sm:inline">Delete</span>
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="mx-4 max-w-[calc(100%-2rem)]">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete Comment</AlertDialogTitle>
                     <AlertDialogDescription>
                       Are you sure you want to delete this comment? This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                    <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => onDelete(comment.comment_id)}
-                      className="bg-red-600 hover:bg-red-700"
+                      className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
                     >
                       Delete
                     </AlertDialogAction>
@@ -202,19 +203,20 @@ function CommentItem({ comment, isReply = false, onReply, onDelete, onGenerateAi
           {/* AI generated suggestion */}
           {aiReply && !isReplying && (
             <div className="mt-3 p-3 bg-muted/40 rounded-lg border border-muted">
-              <div className="text-xs uppercase text-muted-foreground mb-1">AI suggestion</div>
-              <div className="text-sm mb-2 whitespace-pre-wrap">{aiReply}</div>
+              <div className="text-xs uppercase text-muted-foreground mb-2">AI suggestion</div>
+              <div className="text-sm mb-3 break-words whitespace-pre-wrap">{aiReply}</div>
               <div className="flex justify-end">
-                <Button size="sm" onClick={handleUseGenerated} disabled={isSubmittingReply}>
+                <Button size="sm" onClick={handleUseGenerated} disabled={isSubmittingReply} className="w-full sm:w-auto">
                   {isSubmittingReply ? (
                     <>
-                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                      Posting...
+                      <Loader2 className="h-3 w-3 sm:mr-1 animate-spin" />
+                      <span className="hidden sm:inline">Posting...</span>
+                      <span className="sm:hidden">Posting...</span>
                     </>
                   ) : (
                     <>
-                      <Send className="h-3 w-3 mr-1" />
-                      Post
+                      <Send className="h-3 w-3 sm:mr-1" />
+                      <span>Post</span>
                     </>
                   )}
                 </Button>
@@ -229,10 +231,10 @@ function CommentItem({ comment, isReply = false, onReply, onDelete, onGenerateAi
                 placeholder="Write a reply..."
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                className="min-h-[60px] mb-2"
+                className="min-h-[60px] mb-2 text-sm"
                 disabled={isSubmittingReply}
               />
-              <div className="flex items-center justify-end space-x-2">
+              <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-end">
                 <Button
                   variant="outline"
                   size="sm"
@@ -241,6 +243,7 @@ function CommentItem({ comment, isReply = false, onReply, onDelete, onGenerateAi
                     setReplyText("");
                   }}
                   disabled={isSubmittingReply}
+                  className="w-full sm:w-auto order-2 sm:order-1"
                 >
                   Cancel
                 </Button>
@@ -248,6 +251,7 @@ function CommentItem({ comment, isReply = false, onReply, onDelete, onGenerateAi
                   size="sm"
                   onClick={handleReplySubmit}
                   disabled={!replyText.trim() || isSubmittingReply}
+                  className="w-full sm:w-auto order-1 sm:order-2"
                 >
                   {isSubmittingReply ? (
                     "Posting..."
@@ -543,37 +547,39 @@ export default function CommentsSection({ videoId }: CommentsSectionProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5" />
-            Comments
-            <Badge variant="secondary">{totalComments}</Badge>
+      <CardHeader className="p-4 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span>Comments</span>
+            <Badge variant="secondary" className="text-xs">{totalComments}</Badge>
           </CardTitle>
-          <div className="flex items-center gap-2">
-            <Button onClick={refreshComments} variant="outline" size="sm">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2">
+            <Button onClick={refreshComments} variant="outline" size="sm" className="w-full sm:w-auto">
+              <RefreshCw className="w-4 h-4 sm:mr-2" />
+              <span>Refresh</span>
             </Button>
-            <Button size="sm" onClick={generateAiForAll} disabled={isGeneratingAll}>
+            <Button size="sm" onClick={generateAiForAll} disabled={isGeneratingAll} className="w-full sm:w-auto">
               {isGeneratingAll ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating
+                  <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
+                  <span className="hidden sm:inline">Generating</span>
+                  <span className="sm:hidden">AI</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Reply with AI
+                  <Sparkles className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Reply with AI</span>
+                  <span className="sm:hidden">AI</span>
                 </>
               )}
             </Button>
             {Object.keys(aiReplies).length > 0 && (
-              <Button size="sm" variant="outline" onClick={saveAllReplies} disabled={isSavingBulk}>
+              <Button size="sm" variant="outline" onClick={saveAllReplies} disabled={isSavingBulk} className="w-full sm:w-auto col-span-2 sm:col-span-1">
                 {isSavingBulk ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
+                    <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
+                    <span>Saving...</span>
                   </>
                 ) : (
                   'Save all'
@@ -582,18 +588,18 @@ export default function CommentsSection({ videoId }: CommentsSectionProps) {
             )}
           </div>
         </div>
-        <CardDescription>
+        <CardDescription className="mt-2 text-xs sm:text-sm">
           Comments from YouTube viewers
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 sm:p-6">
         {parentComments.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No comments available for this video.</p>
+          <div className="text-center py-8 text-muted-foreground px-4">
+            <MessageCircle className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-4 opacity-50" />
+            <p className="text-sm sm:text-base">No comments available for this video.</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {parentComments.map((comment) => (
               <div key={comment.comment_id}>
                 <CommentItem 

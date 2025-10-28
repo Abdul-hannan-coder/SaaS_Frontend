@@ -42,7 +42,7 @@ const OptimizedThumbnail = ({
   if (imageError) {
     return (
       <div className="relative aspect-video border-2 rounded-lg border-red-300 bg-red-50 flex items-center justify-center">
-        <span className="text-red-500 text-sm">Failed to load</span>
+        <span className="text-red-500 text-xs sm:text-sm">Failed to load</span>
       </div>
     )
   }
@@ -70,8 +70,8 @@ const OptimizedThumbnail = ({
         loading="eager"
       />
       {isSelected && (
-        <div className="absolute top-1 right-1 bg-brand-primary rounded-full p-1 crypto-glow">
-          <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 crypto-profit bg-white rounded-full" />
+        <div className="absolute top-1 sm:top-1.5 right-1 sm:right-1.5 bg-brand-primary rounded-full p-0.5 sm:p-1 crypto-glow">
+          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 crypto-profit bg-white rounded-full" />
         </div>
       )}
     </div>
@@ -173,13 +173,13 @@ export function ThumbnailSection({
 
   return (
     <Card className="crypto-card crypto-hover-glow">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg lg:text-xl crypto-text-primary">
-          <ImageIcon className="h-5 w-5 crypto-profit" />
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg md:text-xl crypto-text-primary">
+          <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5 crypto-profit" />
           Generate Thumbnail
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 sm:space-y-5 md:space-y-6 p-4 sm:p-6">
         <Button 
           onClick={() => {
             console.log('[ThumbnailSection] Generate button clicked!')
@@ -196,22 +196,22 @@ export function ThumbnailSection({
         >
           {thumbnailsLoading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Generating Thumbnail...
+              <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-spin" />
+              <span className="text-xs sm:text-sm">Generating...</span>
             </>
           ) : (
             <>
-              <ImageIcon className="w-4 h-4 mr-2" />
-              Generate Thumbnail with AI
+              <ImageIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+              <span className="text-xs sm:text-sm">Generate Thumbnail with AI</span>
             </>
           )}
         </Button>
 
         {(state.content.thumbnails.length > 0 || generatedThumbnails.length > 0) && (
-          <div className="space-y-4">
-            <Label className="crypto-text-primary flex items-center gap-2">Thumbnail:</Label>
+          <div className="space-y-3 sm:space-y-4">
+            <Label className="crypto-text-primary flex items-center gap-2 text-sm sm:text-base">Thumbnail:</Label>
 
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:gap-3">
               {(state.content.thumbnails[0] || generatedThumbnails[0]) && (
                 <OptimizedThumbnail
                   key={`thumb-0-${state.content.thumbnails[0] || generatedThumbnails[0]}`}
@@ -225,20 +225,20 @@ export function ThumbnailSection({
               )}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
               <Button
                 variant="outline"
                 onClick={handlers.generateThumbnails}
                 disabled={state.isProcessing || thumbnailsLoading}
-                className="flex-1 sm:flex-none crypto-button-secondary"
+                className="w-full sm:w-auto crypto-button-secondary text-sm sm:text-base"
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Regenerate Thumbnail
+                <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                <span className="text-xs sm:text-sm sm:inline">Regenerate</span>
               </Button>
               {generatedThumbnails.length > 0 && !thumbnailsLoading && (
-                <div className="text-sm text-green-600 flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4" />
-                  1/1 ready
+                <div className="text-xs sm:text-sm text-green-600 flex items-center gap-1 justify-center sm:justify-start">
+                  <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span>1/1 ready</span>
                 </div>
               )}
             </div>
@@ -246,13 +246,13 @@ export function ThumbnailSection({
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="custom-thumbnail" className="crypto-text-primary">Or upload custom thumbnail:</Label>
+          <Label htmlFor="custom-thumbnail" className="crypto-text-primary text-sm sm:text-base">Or upload custom thumbnail:</Label>
           <Input
             id="custom-thumbnail"
             type="file"
             accept="image/*"
             onChange={handleCustomThumbnailUpload}
-            className="crypto-input"
+            className="crypto-input text-xs sm:text-sm"
           />
         </div>
 
@@ -260,15 +260,15 @@ export function ThumbnailSection({
           <Button 
             onClick={handleSaveAndNext}
             disabled={isSaving}
-            className="w-full crypto-button-primary"
+            className="w-full crypto-button-primary text-sm sm:text-base"
           >
             {isSaving ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saving...
+                <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-spin" />
+                <span className="text-xs sm:text-sm sm:inline">Saving...</span>
               </>
             ) : (
-              "Save & Next: Preview"
+              <span className="text-xs sm:text-sm sm:inline">Save & Next: Preview</span>
             )}
           </Button>
         )}
