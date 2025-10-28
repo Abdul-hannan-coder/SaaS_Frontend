@@ -17,6 +17,7 @@ import usePrivacyStatus from "@/lib/hooks/upload/usePrivacyStatus"
 import { useChannelPlaylists } from "@/lib/hooks/dashboard/playlists/useChannelPlaylists"
 import { AllInOneTimestamp } from "@/lib/hooks/upload/allInOneTypes"
 import { useToast } from "@/lib/hooks/common/useToast"
+import useYouTubeUpload from "@/lib/hooks/youtube/useYouTubeUpload"
 
 export default function AllInOnePage() {
   const router = useRouter()
@@ -26,6 +27,7 @@ export default function AllInOnePage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const { processAllInOne, saveAllInOne, isProcessing, isSaving, processedData } = useAllInOne()
   const { playlists, fetchChannelPlaylists } = useChannelPlaylists()
+  const { uploadToYouTube, isUploading: isUploadingToYouTube, resetState: resetYouTubeUploadState } = useYouTubeUpload()
   
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null)
@@ -130,6 +132,7 @@ export default function AllInOnePage() {
     }
 
     try {
+      // Step 1: Save the video content
       await saveAllInOne(currentVideoId, {
         selected_title: selectedTitle,
         selected_thumbnail_url: selectedThumbnail,
@@ -144,6 +147,56 @@ export default function AllInOnePage() {
         description: "Your video content has been saved successfully.",
       })
 
+      // Step 2: Upload to YouTube
+      try {
+        console.log('[AllInOne] Starting YouTube upload for videoId:', currentVideoId)
+        
+        toast({
+          title: "Uploading to YouTube...",
+          description: "Please wait while we upload your video to YouTube.",
+        })
+
+        resetYouTubeUploadState()
+        await uploadToYouTube(currentVideoId)
+
+        toast({
+          title: "YouTube Upload Successful!",
+          description: "Your video has been uploaded to YouTube successfully.",
+        })
+
+        console.log('[AllInOne] YouTube upload completed successfully')
+
+      } catch (uploadError: any) {
+        console.error('[AllInOne] YouTube upload failed:', uploadError)
+        
+        // Check if it's a thumbnail-specific error
+        const errorData = uploadError?.response?.data
+        const isThumbnailError = errorData?.code === 'UPLOAD_005' || 
+                                 errorData?.details?.error_type === 'thumbnail_upload_failure' ||
+                                 errorData?.message?.includes('thumbnail')
+        
+        if (isThumbnailError && errorData?.details?.youtube_video_id) {
+          // Video uploaded successfully, only thumbnail failed
+          console.log('[AllInOne] Video uploaded but thumbnail failed:', {
+            youtubeVideoId: errorData.details.youtube_video_id,
+            error: errorData.message
+          })
+          
+          toast({
+            title: "Video Uploaded (Thumbnail Warning)",
+            description: "Video uploaded to YouTube, but custom thumbnail couldn't be set. You may need to verify your YouTube account or set it manually.",
+            variant: "default",
+          })
+        } else {
+          // Complete upload failure
+          toast({
+            title: "YouTube Upload Failed",
+            description: "Video content was saved, but failed to upload to YouTube. Please try again from the dashboard.",
+            variant: "destructive",
+          })
+        }
+      }
+
       // Reset and go back to upload
       setTimeout(() => {
         setStep("upload")
@@ -156,8 +209,14 @@ export default function AllInOnePage() {
         setPrivacyStatus("public")
         setPlaylistName("")
       }, 2000)
+      
     } catch (error) {
       console.error('[AllInOne] Save failed:', error)
+      toast({
+        title: "Save Failed",
+        description: "Failed to save video content. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -433,7 +492,7 @@ export default function AllInOnePage() {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={isSaving || !selectedTitle || !selectedThumbnail || !description}
+              disabled={isSaving || isUploadingToYouTube || !selectedTitle || !selectedThumbnail || !description}
               className="min-w-[150px]"
             >
               {isSaving ? (
@@ -441,10 +500,15 @@ export default function AllInOnePage() {
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Saving...
                 </>
+              ) : isUploadingToYouTube ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Uploading to YouTube...
+                </>
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  Save Content
+                  Save & Upload to YouTube
                 </>
               )}
             </Button>
