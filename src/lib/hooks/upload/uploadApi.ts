@@ -8,7 +8,7 @@ export function createUploadAxios(tag: string): AxiosInstance {
       accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    timeout: 120000, // 2 minutes (120 seconds) for heavy AI processing tasks
+    timeout: 300000, // 5 minutes (300 seconds) for video upload and heavy AI processing tasks
   })
 
   // Request logging
