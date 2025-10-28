@@ -324,6 +324,13 @@ export default function CommentsSection({ videoId }: CommentsSectionProps) {
       await replyToComment({ parent_comment_id: parentCommentId, reply_text: replyText });
       // Refresh after posting reply
       await refreshComments();
+      // Clear any AI suggestion for this comment so the field is emptied after publishing
+      setAiReplies(prev => {
+        if (!prev[parentCommentId]) return prev
+        const next = { ...prev }
+        delete next[parentCommentId]
+        return next
+      })
     } catch (error: any) {
       console.error("Reply to comment error:", error);
       

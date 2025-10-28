@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { useUploadPage } from "@/lib/hooks/upload/useUploadPage"
 import { useUploadHandlers } from "@/lib/hooks/upload/useUploadHandlers"
 import useUpdateVideo from "@/lib/hooks/upload/useUpdateVideo"
@@ -71,6 +72,33 @@ export default function UploadPage() {
     downloadVideo,
     processAllInOne,
   } = uploadPageData
+
+  // Cleanup on unmount or route change: clear draft and reset stage/session
+  // This ensures that if the user completes the journey or navigates away
+  // (cancels by routing to other pages), we clear any persisted draft/state
+  // so the next visit starts from stage 1 (upload)
+  // Note: We intentionally do NOT bind beforeunload to allow page refresh to keep drafts
+  // and support resuming within the same route.
+  useEffect(() => {
+    return () => {
+      try {
+        const videoId = uploadPageData.getCurrentVideoId?.()
+        if (videoId) {
+          // Clear upload draft for this video
+          import('@/lib/storage/uploadDraft')
+            .then((m) => {
+              try { m.clearUploadDraft(videoId) } catch {}
+            })
+            .catch(() => {})
+        }
+        // Clear persisted current video session so steps reset
+        try {
+          localStorage.removeItem('current_video_data')
+          localStorage.removeItem('current_video_id')
+        } catch {}
+      } catch {}
+    }
+  }, [])
 
   const handlers = useUploadHandlers({
     state,
